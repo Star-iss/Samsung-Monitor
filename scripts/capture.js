@@ -38,21 +38,18 @@ async function fullScroll(page) {
   while (attempts < maxAttempts) {
     const currentHeight = await page.evaluate(() => document.body.scrollHeight);
 
-    await page.evaluate(async (height) => {
-      await new Promise((resolve) => {
-        let pos = window.scrollY;
-        const timer = setInterval(() => {
-          window.scrollBy(0, 50);
-          pos += 50;
-          if (pos >= height) {
-            clearInterval(timer);
-            resolve();
-          }
-        }, 500);
-      });
-    }, currentHeight);
+    // 뷰포트 높이만큼 한 번에 스크롤하고 충분히 대기
+    const viewportHeight = await page.evaluate(() => window.innerHeight);
+    let pos = 0;
 
-    await page.waitForTimeout(4000);
+    while (pos < currentHeight) {
+      await page.evaluate((scrollY) => window.scrollTo(0, scrollY), pos);
+      await page.waitForTimeout(1500); // 각 뷰포트마다 1.5초 대기 (이미지 로딩)
+      pos += viewportHeight;
+    }
+
+    // 전체 로딩 후 추가 대기
+    await page.waitForTimeout(5000);
 
     const newHeight = await page.evaluate(() => document.body.scrollHeight);
     console.log(`  Scroll attempt ${attempts + 1}: ${previousHeight} -> ${newHeight}px`);
@@ -68,24 +65,17 @@ async function fullScroll(page) {
 
 async function capture(site) {
   const browser = await chromium.launch({
-    args: [
-      '--no-sandbox',
-      '--disable-blink-features=AutomationControlled', // 봇 감지 우회
-    ]
+    args: ['--no-sandbox', '--disable-blink-features=AutomationControlled']
   });
 
-  // 실제 Chrome 브라우저처럼 보이도록 설정
   const context = await browser.newContext({
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
     viewport: { width: 1440, height: 900 },
     locale: 'de-DE',
     timezoneId: 'Europe/Berlin',
-    extraHTTPHeaders: {
-      'Accept-Language': 'de-DE,de;q=0.9,en;q=0.8',
-    }
+    extraHTTPHeaders: { 'Accept-Language': 'de-DE,de;q=0.9,en;q=0.8' }
   });
 
-  // webdriver 속성 숨기기
   await context.addInitScript(() => {
     Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
     Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
@@ -97,7 +87,7 @@ async function capture(site) {
   try {
     console.log(`\nCapturing: ${site.name}`);
     await page.goto(site.url, { waitUntil: 'domcontentloaded', timeout: 60000 });
-    await page.waitForTimeout(4000);
+    await page.waitForTimeout(5000); // 초기 로딩 5초 대기
 
     await acceptCookies(page);
     await page.waitForTimeout(2000);
@@ -108,7 +98,7 @@ async function capture(site) {
     await page.screenshot({ path: path.join(dir, `${today}-top.png`), fullPage: false });
     console.log('  Top screenshot done');
 
-    console.log('  Scrolling slowly to load all content...');
+    console.log('  Scrolling to load all content...');
     await fullScroll(page);
 
     await page.screenshot({ path: path.join(dir, `${today}-full.png`), fullPage: true });
