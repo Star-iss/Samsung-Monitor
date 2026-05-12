@@ -1,0 +1,18 @@
+[
+  {
+    "id": "samsung-de-home",
+    "name": "Samsung DE Homepage",
+    "url": "https://www.samsung.com/de/",
+    "date": "2026-05-12",
+    "success": false,
+    "error": "page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"https://www.samsung.com/de/\", waiting until \"networkidle\"\n"
+  },
+  {
+    "id": "samsung-de-monitors",
+    "name": "Samsung DE Monitors",
+    "url": "https://www.samsung.com/de/monitors/all-monitors/",
+    "date": "2026-05-12",
+    "success": false,
+    "error": "page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"https://www.samsung.com/de/monitors/all-monitors/\", waiting until \"networkidle\"\n"
+  }
+]
