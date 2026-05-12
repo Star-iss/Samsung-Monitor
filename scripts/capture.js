@@ -12,8 +12,8 @@ async function capture(site) {
 
   try {
     console.log(`Capturing: ${site.name}`);
-    await page.goto(site.url, { waitUntil: 'networkidle', timeout: 30000 });
-    await page.waitForTimeout(2000);
+    await page.goto(site.url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.waitForTimeout(5000);
 
     // Try to close cookie banners
     const cookieSelectors = ['#onetrust-accept-btn-handler', '.cookie-accept', 'button[id*="accept"]'];
