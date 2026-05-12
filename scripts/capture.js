@@ -30,29 +30,46 @@ async function acceptCookies(page) {
   return false;
 }
 
-async function slowScroll(page) {
-  // 페이지 전체 높이만큼 천천히 스크롤 - lazy load 이미지 트리거
-  await page.evaluate(async () => {
-    await new Promise((resolve) => {
-      const distance = 200;   // 한 번에 스크롤할 픽셀
-      const delay = 300;      // 각 스크롤 사이 대기 시간 (ms)
-      let currentPos = 0;
+async function fullScroll(page) {
+  // 페이지 전체 높이를 파악하면서 끝까지 스크롤
+  let previousHeight = 0;
+  let attempts = 0;
+  const maxAttempts = 30;
 
-      const timer = setInterval(() => {
-        window.scrollBy(0, distance);
-        currentPos += distance;
+  while (attempts < maxAttempts) {
+    const currentHeight = await page.evaluate(() => document.body.scrollHeight);
 
-        if (currentPos >= document.body.scrollHeight) {
-          clearInterval(timer);
-          window.scrollTo(0, 0); // 맨 위로 복귀
-          resolve();
-        }
-      }, delay);
-    });
-  });
+    // 100px씩 아주 천천히 스크롤
+    await page.evaluate(async (height) => {
+      await new Promise((resolve) => {
+        let pos = window.scrollY;
+        const timer = setInterval(() => {
+          window.scrollBy(0, 100);
+          pos += 100;
+          if (pos >= height) {
+            clearInterval(timer);
+            resolve();
+          }
+        }, 150); // 150ms마다 100px 스크롤
+      });
+    }, currentHeight);
 
-  // 스크롤 후 이미지/컴포넌트 렌더링 완료 대기
-  await page.waitForTimeout(3000);
+    // 새 컨텐츠 로딩 대기
+    await page.waitForTimeout(2000);
+
+    const newHeight = await page.evaluate(() => document.body.scrollHeight);
+    console.log(`  Scroll attempt ${attempts + 1}: height ${previousHeight} -> ${newHeight}`);
+
+    // 높이가 더 이상 안 늘어나면 완료
+    if (newHeight === previousHeight) break;
+
+    previousHeight = newHeight;
+    attempts++;
+  }
+
+  // 맨 위로 복귀
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(1500);
 }
 
 async function capture(site) {
@@ -69,28 +86,19 @@ async function capture(site) {
     await acceptCookies(page);
     await page.waitForTimeout(1500);
 
-    // 상단 뷰포트 캡처 (쿠키창 닫힌 후)
     const dir = path.join('docs', 'screenshots', site.id);
     fs.mkdirSync(dir, { recursive: true });
 
-    await page.screenshot({
-      path: path.join(dir, `${today}-top.png`),
-      fullPage: false
-    });
+    // 상단 캡처
+    await page.screenshot({ path: path.join(dir, `${today}-top.png`), fullPage: false });
     console.log('  Top screenshot done');
 
-    // 천천히 스크롤해서 모든 lazy load 콘텐츠 로딩
+    // 전체 스크롤해서 lazy load 트리거
     console.log('  Scrolling to load all content...');
-    await slowScroll(page);
-
-    // 2차 스크롤 (혹시 첫 번째 스크롤로 로딩된 컨텐츠에 또 lazy load가 있을 경우)
-    await slowScroll(page);
+    await fullScroll(page);
 
     // 전체 페이지 캡처
-    await page.screenshot({
-      path: path.join(dir, `${today}-full.png`),
-      fullPage: true
-    });
+    await page.screenshot({ path: path.join(dir, `${today}-full.png`), fullPage: true });
     console.log('  Full screenshot done');
 
     return { id: site.id, name: site.name, url: site.url, date: today, success: true };
