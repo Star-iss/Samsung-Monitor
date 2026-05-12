@@ -6,31 +6,53 @@ const config = JSON.parse(fs.readFileSync('urls.json', 'utf8'));
 const today = new Date().toISOString().split('T')[0];
 
 async function acceptCookies(page) {
-  // 삼성 쿠키 동의 버튼 셀렉터 목록
   const cookieSelectors = [
     '#truste-consent-button',
     '#onetrust-accept-btn-handler',
     'button[id*="accept"]',
     'button[class*="accept"]',
-    'button[class*="cookie"]',
     '.truste_overlay .pdynamicbutton .call',
     '[aria-label*="Accept"]',
     '[aria-label*="accept"]',
   ];
-
   for (const selector of cookieSelectors) {
     try {
       const btn = await page.waitForSelector(selector, { timeout: 5000 });
       if (btn) {
         await btn.click();
         console.log(`  Cookie accepted via: ${selector}`);
-        await page.waitForTimeout(2000); // 쿠키 창 닫힐 때까지 대기
+        await page.waitForTimeout(2000);
         return true;
       }
     } catch {}
   }
-  console.log('  No cookie banner found or already accepted');
+  console.log('  No cookie banner found');
   return false;
+}
+
+async function slowScroll(page) {
+  // 페이지 전체 높이만큼 천천히 스크롤 - lazy load 이미지 트리거
+  await page.evaluate(async () => {
+    await new Promise((resolve) => {
+      const distance = 200;   // 한 번에 스크롤할 픽셀
+      const delay = 300;      // 각 스크롤 사이 대기 시간 (ms)
+      let currentPos = 0;
+
+      const timer = setInterval(() => {
+        window.scrollBy(0, distance);
+        currentPos += distance;
+
+        if (currentPos >= document.body.scrollHeight) {
+          clearInterval(timer);
+          window.scrollTo(0, 0); // 맨 위로 복귀
+          resolve();
+        }
+      }, delay);
+    });
+  });
+
+  // 스크롤 후 이미지/컴포넌트 렌더링 완료 대기
+  await page.waitForTimeout(3000);
 }
 
 async function capture(site) {
@@ -43,45 +65,34 @@ async function capture(site) {
     await page.goto(site.url, { waitUntil: 'domcontentloaded', timeout: 60000 });
     await page.waitForTimeout(3000);
 
-    // 쿠키 동의 클릭
+    // 쿠키 동의
     await acceptCookies(page);
+    await page.waitForTimeout(1500);
 
-    // 쿠키 창 닫힌 후 페이지 안정화 대기
-    await page.waitForTimeout(2000);
-
+    // 상단 뷰포트 캡처 (쿠키창 닫힌 후)
     const dir = path.join('docs', 'screenshots', site.id);
     fs.mkdirSync(dir, { recursive: true });
 
-    // 상단 뷰포트 캡처
     await page.screenshot({
       path: path.join(dir, `${today}-top.png`),
       fullPage: false
     });
+    console.log('  Top screenshot done');
 
-    // 전체 페이지 캡처 - 스크롤하면서 lazy load 이미지 로딩
-    await page.evaluate(async () => {
-      await new Promise((resolve) => {
-        let totalHeight = 0;
-        const distance = 300;
-        const timer = setInterval(() => {
-          window.scrollBy(0, distance);
-          totalHeight += distance;
-          if (totalHeight >= document.body.scrollHeight) {
-            clearInterval(timer);
-            window.scrollTo(0, 0); // 다시 맨 위로
-            resolve();
-          }
-        }, 100);
-      });
-    });
-    await page.waitForTimeout(2000); // 이미지 로딩 완료 대기
+    // 천천히 스크롤해서 모든 lazy load 콘텐츠 로딩
+    console.log('  Scrolling to load all content...');
+    await slowScroll(page);
 
+    // 2차 스크롤 (혹시 첫 번째 스크롤로 로딩된 컨텐츠에 또 lazy load가 있을 경우)
+    await slowScroll(page);
+
+    // 전체 페이지 캡처
     await page.screenshot({
       path: path.join(dir, `${today}-full.png`),
       fullPage: true
     });
+    console.log('  Full screenshot done');
 
-    console.log(`  Done: ${site.name}`);
     return { id: site.id, name: site.name, url: site.url, date: today, success: true };
 
   } catch (err) {
