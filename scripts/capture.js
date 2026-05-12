@@ -38,7 +38,6 @@ async function fullScroll(page) {
   while (attempts < maxAttempts) {
     const currentHeight = await page.evaluate(() => document.body.scrollHeight);
 
-    // 50px씩 아주 천천히 스크롤, 각 스텝마다 500ms 대기
     await page.evaluate(async (height) => {
       await new Promise((resolve) => {
         let pos = window.scrollY;
@@ -49,18 +48,16 @@ async function fullScroll(page) {
             clearInterval(timer);
             resolve();
           }
-        }, 500); // 500ms마다 50px → 매우 느린 스크롤
+        }, 500);
       });
     }, currentHeight);
 
-    // 새 컨텐츠 로딩 충분히 대기
     await page.waitForTimeout(4000);
 
     const newHeight = await page.evaluate(() => document.body.scrollHeight);
     console.log(`  Scroll attempt ${attempts + 1}: ${previousHeight} -> ${newHeight}px`);
 
     if (newHeight === previousHeight) break;
-
     previousHeight = newHeight;
     attempts++;
   }
@@ -70,9 +67,32 @@ async function fullScroll(page) {
 }
 
 async function capture(site) {
-  const browser = await chromium.launch();
-  const page = await browser.newPage();
-  await page.setViewportSize({ width: 1440, height: 900 });
+  const browser = await chromium.launch({
+    args: [
+      '--no-sandbox',
+      '--disable-blink-features=AutomationControlled', // 봇 감지 우회
+    ]
+  });
+
+  // 실제 Chrome 브라우저처럼 보이도록 설정
+  const context = await browser.newContext({
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    viewport: { width: 1440, height: 900 },
+    locale: 'de-DE',
+    timezoneId: 'Europe/Berlin',
+    extraHTTPHeaders: {
+      'Accept-Language': 'de-DE,de;q=0.9,en;q=0.8',
+    }
+  });
+
+  // webdriver 속성 숨기기
+  await context.addInitScript(() => {
+    Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+    Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
+    Object.defineProperty(navigator, 'languages', { get: () => ['de-DE', 'de', 'en'] });
+  });
+
+  const page = await context.newPage();
 
   try {
     console.log(`\nCapturing: ${site.name}`);
