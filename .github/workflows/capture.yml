@@ -1,0 +1,52 @@
+name: Daily Screenshot Capture
+
+on:
+  schedule:
+    - cron: '0 9 * * *'   # 매일 09:00 UTC = 한국 18:00 / 독일 10:00-11:00
+  workflow_dispatch:        # 수동 실행 버튼 (테스트용)
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Run screenshot capture
+        run: node scripts/capture.js
+
+      - name: Generate dashboard
+        run: node scripts/generate-dashboard.js
+
+      - name: Commit and push
+        run: |
+          git config user.name "Screenshot Bot"
+          git config user.email "bot@github.com"
+          git add docs/
+          git commit -m "Daily capture: $(date +%Y-%m-%d)" || echo "No changes"
+          git push
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs

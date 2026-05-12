@@ -1,0 +1,31 @@
+{
+  "urls": [
+    {
+      "id": "de-home",
+      "label": "Samsung DE - Home",
+      "url": "https://www.samsung.com/de/",
+      "category": "Homepage"
+    },
+    {
+      "id": "de-monitors",
+      "label": "Samsung DE - All Monitors",
+      "url": "https://www.samsung.com/de/monitors/all-monitors/",
+      "category": "Monitors"
+    },
+    {
+      "id": "uk-monitors",
+      "label": "Samsung UK - All Monitors",
+      "url": "https://www.samsung.com/uk/monitors/all-monitors/",
+      "category": "Monitors"
+    }
+  ],
+  "schedule": {
+    "timezone": "Asia/Seoul",
+    "time": "09:00"
+  },
+  "capture": {
+    "viewport": { "width": 1920, "height": 1080 },
+    "fullPage": true,
+    "waitMs": 4000
+  }
+}

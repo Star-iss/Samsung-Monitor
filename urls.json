@@ -1,0 +1,16 @@
+{
+  "sites": [
+    {
+      "name": "Samsung DE Homepage",
+      "url": "https://www.samsung.com/de/",
+      "id": "samsung-de-home"
+    },
+    {
+      "name": "Samsung DE Monitors",
+      "url": "https://www.samsung.com/de/monitors/all-monitors/",
+      "id": "samsung-de-monitors"
+    }
+  ],
+  "schedule": "0 9 * * *",
+  "timezone": "Europe/Berlin"
+}

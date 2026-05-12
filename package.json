@@ -1,0 +1,13 @@
+{
+  "name": "samsung-web-monitor",
+  "version": "1.0.0",
+  "description": "Samsung 웹사이트 자동 스크린샷 모니터링 도구",
+  "scripts": {
+    "capture": "node scripts/capture.js",
+    "dashboard": "node scripts/generate-dashboard.js",
+    "run-all": "node scripts/capture.js && node scripts/generate-dashboard.js"
+  },
+  "dependencies": {
+    "playwright": "^1.44.0"
+  }
+}
