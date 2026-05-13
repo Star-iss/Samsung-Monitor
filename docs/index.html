@@ -144,46 +144,54 @@
     <h1>🖥️ Samsung Web Monitor</h1>
     <div class="meta">팀 내부용 웹 변경 모니터링 대시보드</div>
   </div>
-  <div class="meta">마지막 업데이트: 2026-05-12</div>
+  <div class="meta">마지막 업데이트: 2026-05-13</div>
 </header>
 
 <div class="toolbar">
   <label>날짜 선택:</label>
   <select id="dateSelect" onchange="filterByDate(this.value)">
-    <option value="2026-05-12">2026-05-12</option>
+    <option value="2026-05-13">2026-05-13</option><option value="2026-05-12">2026-05-12</option>
   </select>
   <span class="total">총 2개 사이트 모니터링 중</span>
 </div>
 
 <div class="grid" id="grid">
   
-    <div class="card" onclick="openModal('samsung-de-home', '2026-05-12')">
+    <div class="card" onclick="openModal('samsung-de-home', '2026-05-13')">
       <div class="card-header">
         <div class="site-name">Samsung DE Homepage</div>
         <a href="https://www.samsung.com/de/" target="_blank" class="site-url">https://www.samsung.com/de/</a>
       </div>
       <div class="card-images">
         <div class="img-wrap">
-          <div class="img-label">최신 (2026-05-12)</div>
-          <img src="screenshots/samsung-de-home/2026-05-12-top.png" alt="Samsung DE Homepage" onerror="this.src='placeholder.png'"/>
+          <div class="img-label">최신 (2026-05-13)</div>
+          <img src="screenshots/samsung-de-home/2026-05-13-top.png" alt="Samsung DE Homepage" onerror="this.src='placeholder.png'"/>
         </div>
         
+        <div class="img-wrap">
+          <div class="img-label">이전 (2026-05-12)</div>
+          <img src="screenshots/samsung-de-home/2026-05-12-top.png" alt="Samsung DE Homepage previous" onerror="this.src='placeholder.png'"/>
+        </div>
       </div>
       <div class="card-footer">
         <span class="badge">전체보기 클릭</span>
       </div>
     </div>
-    <div class="card" onclick="openModal('samsung-de-monitors', '2026-05-12')">
+    <div class="card" onclick="openModal('samsung-de-monitors', '2026-05-13')">
       <div class="card-header">
         <div class="site-name">Samsung DE Monitors</div>
         <a href="https://www.samsung.com/de/monitors/all-monitors/" target="_blank" class="site-url">https://www.samsung.com/de/monitors/all-monitors/</a>
       </div>
       <div class="card-images">
         <div class="img-wrap">
-          <div class="img-label">최신 (2026-05-12)</div>
-          <img src="screenshots/samsung-de-monitors/2026-05-12-top.png" alt="Samsung DE Monitors" onerror="this.src='placeholder.png'"/>
+          <div class="img-label">최신 (2026-05-13)</div>
+          <img src="screenshots/samsung-de-monitors/2026-05-13-top.png" alt="Samsung DE Monitors" onerror="this.src='placeholder.png'"/>
         </div>
         
+        <div class="img-wrap">
+          <div class="img-label">이전 (2026-05-12)</div>
+          <img src="screenshots/samsung-de-monitors/2026-05-12-top.png" alt="Samsung DE Monitors previous" onerror="this.src='placeholder.png'"/>
+        </div>
       </div>
       <div class="card-footer">
         <span class="badge">전체보기 클릭</span>
@@ -201,7 +209,7 @@
 </div>
 
 <script>
-const allDates = ["2026-05-12"];
+const allDates = ["2026-05-13","2026-05-12"];
 const sites = [{"name":"Samsung DE Homepage","url":"https://www.samsung.com/de/","id":"samsung-de-home"},{"name":"Samsung DE Monitors","url":"https://www.samsung.com/de/monitors/all-monitors/","id":"samsung-de-monitors"}];
 
 function openModal(siteId, date) {
@@ -220,12 +228,12 @@ function openModal(siteId, date) {
     </div>
     <div class="modal-img-grid">
       <div>
-        <div class="modal-img-label">🖥️ 상단 뷰 (2026-05-12)</div>
+        <div class="modal-img-label">🖥️ 상단 뷰 (2026-05-13)</div>
         <img src="screenshots/${siteId}/${date}-top.png" alt="top"/>
         <a href="screenshots/${siteId}/${date}-top.png" target="_blank" class="full-btn" style="margin-top:8px">원본 크기로 보기</a>
       </div>
       <div>
-        <div class="modal-img-label">📄 전체 페이지 (2026-05-12)</div>
+        <div class="modal-img-label">📄 전체 페이지 (2026-05-13)</div>
         <img src="screenshots/${siteId}/${date}-full.png" alt="full"/>
         <a href="screenshots/${siteId}/${date}-full.png" target="_blank" class="full-btn" style="margin-top:8px">원본 크기로 보기</a>
       </div>
