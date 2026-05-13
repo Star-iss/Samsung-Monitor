@@ -16,6 +16,14 @@ function getSiteCards() {
     const topImg = `screenshots/${site.id}/${latest}-top.png`;
     const gnbImg = `screenshots/${site.id}/${latest}-gnb-hover.png`;
     const prevTopImg = previous ? `screenshots/${site.id}/${previous}-top.png` : null;
+    const hasGnb = site.gnbHover === true;
+
+    // 탭 구성: gnbHover 있는 사이트만 GNB Hover 탭 표시
+    const tabs = [
+      `<button class="tab active" onclick="switchTab(this, '${site.id}', 'top')">🖥️ 상단 뷰</button>`,
+      hasGnb ? `<button class="tab" onclick="switchTab(this, '${site.id}', 'gnb')">📂 GNB Hover</button>` : '',
+      prevTopImg ? `<button class="tab" onclick="switchTab(this, '${site.id}', 'compare')">📅 날짜 비교</button>` : '',
+    ].filter(Boolean).join('');
 
     return `
     <div class="card">
@@ -24,11 +32,7 @@ function getSiteCards() {
         <a href="${site.url}" target="_blank" class="site-url">${site.url}</a>
       </div>
 
-      <div class="tab-bar">
-        <button class="tab active" onclick="switchTab(this, '${site.id}', 'top')">🖥️ 상단 뷰</button>
-        <button class="tab" onclick="switchTab(this, '${site.id}', 'gnb')">📂 GNB Hover</button>
-        ${prevTopImg ? `<button class="tab" onclick="switchTab(this, '${site.id}', 'compare')">📅 날짜 비교</button>` : ''}
-      </div>
+      <div class="tab-bar">${tabs}</div>
 
       <div class="tab-content" id="${site.id}-top">
         <div class="img-wrap">
@@ -37,12 +41,13 @@ function getSiteCards() {
         </div>
       </div>
 
+      ${hasGnb ? `
       <div class="tab-content hidden" id="${site.id}-gnb">
         <div class="img-wrap">
           <div class="img-label">GNB Hover (${latest})</div>
           <img src="${gnbImg}" onclick="openModal('${site.id}', '${latest}', 'gnb')" onerror="this.parentElement.innerHTML='<p class=no-img>이미지 없음</p>'"/>
         </div>
-      </div>
+      </div>` : ''}
 
       ${prevTopImg ? `
       <div class="tab-content hidden" id="${site.id}-compare">
@@ -61,6 +66,7 @@ function getSiteCards() {
       <div class="card-footer">
         <a href="screenshots/${site.id}/${latest}-full.png" target="_blank" class="badge">📄 전체 페이지 원본</a>
         <a href="screenshots/${site.id}/${latest}-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
+        ${hasGnb ? `<a href="screenshots/${site.id}/${latest}-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -126,21 +132,11 @@ const html = `<!DOCTYPE html>
   .site-url { font-size: 0.78rem; color: #888; text-decoration: none; display: block; margin-top: 2px; }
   .site-url:hover { color: #1428A0; }
 
-  .tab-bar {
-    display: flex;
-    border-bottom: 1px solid #eee;
-    background: #fafafa;
-  }
+  .tab-bar { display: flex; border-bottom: 1px solid #eee; background: #fafafa; }
   .tab {
-    flex: 1;
-    padding: 10px;
-    border: none;
-    background: none;
-    font-size: 0.82rem;
-    cursor: pointer;
-    color: #666;
-    border-bottom: 2px solid transparent;
-    transition: all 0.15s;
+    flex: 1; padding: 10px; border: none; background: none;
+    font-size: 0.82rem; cursor: pointer; color: #666;
+    border-bottom: 2px solid transparent; transition: all 0.15s;
   }
   .tab:hover { background: #f0f0f0; }
   .tab.active { color: #1428A0; border-bottom-color: #1428A0; font-weight: 600; background: white; }
@@ -163,43 +159,25 @@ const html = `<!DOCTYPE html>
   .card-images .img-wrap + .img-wrap { border-left: 2px solid #f0f0f0; }
 
   .card-footer {
-    padding: 12px 20px;
-    background: #fafafa;
-    border-top: 1px solid #f0f0f0;
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+    padding: 12px 20px; background: #fafafa;
+    border-top: 1px solid #f0f0f0; display: flex; gap: 8px; flex-wrap: wrap;
   }
   .badge {
-    font-size: 0.75rem;
-    background: #e8eaf6;
-    color: #1428A0;
-    padding: 4px 12px;
-    border-radius: 20px;
-    text-decoration: none;
-    cursor: pointer;
+    font-size: 0.75rem; background: #e8eaf6; color: #1428A0;
+    padding: 4px 12px; border-radius: 20px; text-decoration: none; cursor: pointer;
   }
   .badge:hover { background: #1428A0; color: white; }
 
-  /* Modal */
   .modal-overlay {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.75);
-    z-index: 100;
-    align-items: center;
-    justify-content: center;
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75); z-index: 100;
+    align-items: center; justify-content: center;
   }
   .modal-overlay.open { display: flex; }
   .modal {
-    background: white;
-    border-radius: 16px;
-    width: 92vw;
-    max-width: 1100px;
-    max-height: 90vh;
-    overflow-y: auto;
-    padding: 28px;
-    position: relative;
+    background: white; border-radius: 16px;
+    width: 92vw; max-width: 1100px; max-height: 90vh;
+    overflow-y: auto; padding: 28px; position: relative;
   }
   .modal-close {
     position: absolute; top: 16px; right: 20px;
@@ -208,21 +186,14 @@ const html = `<!DOCTYPE html>
   .modal h2 { font-size: 1.1rem; color: #1428A0; margin-bottom: 16px; }
   .modal-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
   .modal-tab-btn {
-    padding: 6px 16px;
-    border: 1px solid #ddd;
-    border-radius: 20px;
-    background: none;
-    cursor: pointer;
-    font-size: 0.82rem;
-    color: #555;
+    padding: 6px 16px; border: 1px solid #ddd; border-radius: 20px;
+    background: none; cursor: pointer; font-size: 0.82rem; color: #555;
   }
   .modal-tab-btn.active { background: #1428A0; color: white; border-color: #1428A0; }
   .modal img { width: 100%; border: 1px solid #eee; border-radius: 8px; }
   .open-btn {
-    display: inline-block; margin-top: 10px;
-    background: #1428A0; color: white;
-    padding: 7px 18px; border-radius: 8px;
-    font-size: 0.82rem; text-decoration: none;
+    display: inline-block; margin-top: 10px; background: #1428A0; color: white;
+    padding: 7px 18px; border-radius: 8px; font-size: 0.82rem; text-decoration: none;
   }
 </style>
 </head>
@@ -238,7 +209,7 @@ const html = `<!DOCTYPE html>
 
 <div class="toolbar">
   <label>날짜:</label>
-  <select id="dateSelect" onchange="location.reload()">
+  <select id="dateSelect">
     ${getDateOptions()}
   </select>
   <span class="total">총 ${config.sites.length}개 사이트 모니터링 중</span>
@@ -260,10 +231,8 @@ const sites = ${JSON.stringify(config.sites)};
 const dates = ${JSON.stringify(dates)};
 
 function switchTab(btn, siteId, tab) {
-  // 같은 카드의 탭 버튼들
   btn.closest('.card').querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
-  // 탭 컨텐츠
   btn.closest('.card').querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
   document.getElementById(siteId + '-' + tab).classList.remove('hidden');
 }
@@ -274,7 +243,7 @@ function openModal(siteId, date, type) {
 
   const types = [
     { key: 'top', label: '🖥️ 상단 뷰' },
-    { key: 'gnb', label: '📂 GNB Hover' },
+    ...(site.gnbHover ? [{ key: 'gnb', label: '📂 GNB Hover' }] : []),
     { key: 'full', label: '📄 전체 페이지' },
   ];
 
@@ -291,7 +260,7 @@ function showModalImg(siteId, date, type) {
   const suffix = type === 'full' ? 'full' : type === 'gnb' ? 'gnb-hover' : 'top';
   const src = \`screenshots/\${siteId}/\${date}-\${suffix}.png\`;
   document.getElementById('modalContent').innerHTML = \`
-    <img src="\${src}" onerror="this.src=''" alt="\${type}"/>
+    <img src="\${src}" alt="\${type}"/>
     <br/><a href="\${src}" target="_blank" class="open-btn">원본 크기로 보기 ↗</a>
   \`;
 }
