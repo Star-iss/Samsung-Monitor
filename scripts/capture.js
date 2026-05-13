@@ -37,19 +37,17 @@ async function fullScroll(page) {
 
   while (attempts < maxAttempts) {
     const currentHeight = await page.evaluate(() => document.body.scrollHeight);
-
-    // 뷰포트 높이만큼 한 번에 스크롤하고 충분히 대기
     const viewportHeight = await page.evaluate(() => window.innerHeight);
     let pos = 0;
 
     while (pos < currentHeight) {
       await page.evaluate((scrollY) => window.scrollTo(0, scrollY), pos);
-      await page.waitForTimeout(1500); // 각 뷰포트마다 1.5초 대기 (이미지 로딩)
+      await page.waitForTimeout(3000); // 각 뷰포트마다 3초 대기
       pos += viewportHeight;
     }
 
-    // 전체 로딩 후 추가 대기
-    await page.waitForTimeout(5000);
+    // 모든 이미지 로딩 완료 대기
+    await page.waitForTimeout(8000);
 
     const newHeight = await page.evaluate(() => document.body.scrollHeight);
     console.log(`  Scroll attempt ${attempts + 1}: ${previousHeight} -> ${newHeight}px`);
@@ -60,7 +58,7 @@ async function fullScroll(page) {
   }
 
   await page.evaluate(() => window.scrollTo(0, 0));
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(3000);
 }
 
 async function capture(site) {
@@ -87,10 +85,10 @@ async function capture(site) {
   try {
     console.log(`\nCapturing: ${site.name}`);
     await page.goto(site.url, { waitUntil: 'domcontentloaded', timeout: 60000 });
-    await page.waitForTimeout(5000); // 초기 로딩 5초 대기
+    await page.waitForTimeout(6000); // 초기 로딩 6초
 
     await acceptCookies(page);
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
 
     const dir = path.join('docs', 'screenshots', site.id);
     fs.mkdirSync(dir, { recursive: true });
