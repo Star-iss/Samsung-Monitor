@@ -1,18 +1,34 @@
 {
-  "sites": [
+  "countries": [
+    { "code": "de", "name": "🇩🇪 DE" },
+    { "code": "au", "name": "🇦🇺 AU" },
+    { "code": "be", "name": "🇧🇪 BE" },
+    { "code": "be_fr", "name": "🇧🇪 BE-FR" },
+    { "code": "fr", "name": "🇫🇷 FR" },
+    { "code": "it", "name": "🇮🇹 IT" },
+    { "code": "sec", "name": "🇰🇷 KR" },
+    { "code": "nl", "name": "🇳🇱 NL" },
+    { "code": "no", "name": "🇳🇴 NO" },
+    { "code": "pt", "name": "🇵🇹 PT" },
+    { "code": "es", "name": "🇪🇸 ES" },
+    { "code": "se", "name": "🇸🇪 SE" },
+    { "code": "tr", "name": "🇹🇷 TR" },
+    { "code": "uk", "name": "🇬🇧 UK" },
+    { "code": "us", "name": "🇺🇸 US" }
+  ],
+  "pages": [
     {
-      "name": "Samsung DE Homepage",
-      "url": "https://www.samsung.com/de/",
-      "id": "samsung-de-home",
+      "name": "Homepage",
+      "path": "/",
+      "id": "home",
       "gnbHover": true
     },
     {
-      "name": "Samsung DE Monitors",
-      "url": "https://www.samsung.com/de/monitors/all-monitors/",
-      "id": "samsung-de-monitors",
+      "name": "Monitors",
+      "path": "/monitors/all-monitors/",
+      "id": "monitors",
       "gnbHover": false
     }
   ],
-  "schedule": "0 9 * * *",
-  "timezone": "Europe/Berlin"
+  "schedule": "0 9 * * *"
 }
