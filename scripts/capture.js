@@ -36,14 +36,6 @@ async function captureGNBHover(page, dir) {
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(1000);
 
-    // 실제 GNB 링크 텍스트 목록 출력 (디버깅용)
-    const navLinks = await page.evaluate(() => {
-      const links = Array.from(document.querySelectorAll('nav a, header a, .gnb a, [class*="nav"] a, [class*="Nav"] a'));
-      return links.map(a => ({ text: a.textContent.trim(), href: a.href, className: a.className })).slice(0, 30);
-    });
-    console.log('  Found nav links:', JSON.stringify(navLinks.slice(0, 10)));
-
-    // Computer 관련 텍스트를 가진 링크 찾기
     const targetLink = await page.evaluateHandle(() => {
       const links = Array.from(document.querySelectorAll('nav a, header a, [class*="nav"] a, [class*="gnb"] a, [class*="GNB"] a, [role="menuitem"]'));
       return links.find(a => {
@@ -54,24 +46,18 @@ async function captureGNBHover(page, dir) {
 
     const el = targetLink.asElement();
     if (!el) {
-      console.log('  GNB link not found by text, trying all nav items...');
-
-      // 모든 최상위 nav 항목 hover 시도
       const navItems = await page.$$('nav > ul > li, header > nav > ul > li, [class*="nav__item"], [class*="gnb__item"]');
-      console.log(`  Found ${navItems.length} nav items`);
-
       for (let i = 0; i < navItems.length; i++) {
         const text = await navItems[i].evaluate(el => el.textContent.trim().toLowerCase());
-        console.log(`  Nav item ${i}: ${text.substring(0, 30)}`);
         if (text.includes('computer') || text.includes('display')) {
           await navItems[i].hover();
           await page.waitForTimeout(2000);
           await page.screenshot({ path: path.join(dir, `${today}-gnb-hover.png`), fullPage: false });
-          console.log('  GNB hover captured via nav item');
+          console.log('  GNB hover captured');
           return;
         }
       }
-      console.log('  GNB hover: no matching item found');
+      console.log('  GNB: no matching item found');
       return;
     }
 
@@ -156,14 +142,19 @@ async function capture(site) {
     await page.screenshot({ path: path.join(dir, `${today}-top.png`), fullPage: false });
     console.log('  Top screenshot done');
 
-    // 2. GNB Hover - 홈페이지(첫 번째 사이트)만
+    // 2. GNB Hover (홈페이지만)
     if (site.gnbHover) {
       await captureGNBHover(page, dir);
     }
 
-    // 3. 전체 페이지
+    // 3. GNB hover 해제 후 전체 페이지 캡처
+    // 페이지 좌상단 로고 쪽으로 마우스 이동해서 hover 해제
+    await page.mouse.move(68, 177);
+    await page.waitForTimeout(1000);
+
     console.log('  Scrolling to load all content...');
     await fullScroll(page);
+
     await page.screenshot({ path: path.join(dir, `${today}-full.png`), fullPage: true });
     console.log('  Full screenshot done');
 
