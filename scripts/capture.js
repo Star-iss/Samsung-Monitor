@@ -30,24 +30,42 @@ async function acceptCookies(page) {
   return false;
 }
 
-async function fullScroll(page) {
+async function disableLazyLoadAndScroll(page) {
+  // 1. 모든 이미지의 lazy loading 속성 제거
+  await page.evaluate(() => {
+    document.querySelectorAll('img[loading="lazy"]').forEach(img => {
+      img.removeAttribute('loading');
+      // src가 data-src에 있는 경우도 처리
+      if (img.dataset.src) img.src = img.dataset.src;
+      if (img.dataset.lazySrc) img.src = img.dataset.lazySrc;
+    });
+  });
+
+  // 2. IntersectionObserver 기반 lazy load도 트리거하기 위해 스크롤
   let previousHeight = 0;
   let attempts = 0;
-  const maxAttempts = 50;
 
-  while (attempts < maxAttempts) {
+  while (attempts < 20) {
     const currentHeight = await page.evaluate(() => document.body.scrollHeight);
     const viewportHeight = await page.evaluate(() => window.innerHeight);
     let pos = 0;
 
     while (pos < currentHeight) {
-      await page.evaluate((scrollY) => window.scrollTo(0, scrollY), pos);
-      await page.waitForTimeout(3000); // 각 뷰포트마다 3초 대기
-      pos += viewportHeight;
+      await page.evaluate((y) => window.scrollTo(0, y), pos);
+      await page.waitForTimeout(800);
+      pos += Math.floor(viewportHeight * 0.8); // 80% 겹치게 스크롤
     }
 
-    // 모든 이미지 로딩 완료 대기
-    await page.waitForTimeout(8000);
+    // lazy load 재처리
+    await page.evaluate(() => {
+      document.querySelectorAll('img[loading="lazy"]').forEach(img => {
+        img.removeAttribute('loading');
+        if (img.dataset.src) img.src = img.dataset.src;
+        if (img.dataset.lazySrc) img.src = img.dataset.lazySrc;
+      });
+    });
+
+    await page.waitForTimeout(5000);
 
     const newHeight = await page.evaluate(() => document.body.scrollHeight);
     console.log(`  Scroll attempt ${attempts + 1}: ${previousHeight} -> ${newHeight}px`);
@@ -57,6 +75,7 @@ async function fullScroll(page) {
     attempts++;
   }
 
+  // 맨 위로 복귀
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(3000);
 }
@@ -85,20 +104,23 @@ async function capture(site) {
   try {
     console.log(`\nCapturing: ${site.name}`);
     await page.goto(site.url, { waitUntil: 'domcontentloaded', timeout: 60000 });
-    await page.waitForTimeout(6000); // 초기 로딩 6초
+    await page.waitForTimeout(5000);
 
     await acceptCookies(page);
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(2000);
 
     const dir = path.join('docs', 'screenshots', site.id);
     fs.mkdirSync(dir, { recursive: true });
 
+    // 상단 캡처
     await page.screenshot({ path: path.join(dir, `${today}-top.png`), fullPage: false });
     console.log('  Top screenshot done');
 
-    console.log('  Scrolling to load all content...');
-    await fullScroll(page);
+    // lazy load 제거 + 스크롤
+    console.log('  Disabling lazy load and scrolling...');
+    await disableLazyLoadAndScroll(page);
 
+    // 전체 캡처
     await page.screenshot({ path: path.join(dir, `${today}-full.png`), fullPage: true });
     console.log('  Full screenshot done');
 
