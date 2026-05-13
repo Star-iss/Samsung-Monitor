@@ -37,22 +37,46 @@ async function captureGNBHover(page, dir) {
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(1000);
 
-    const targetLink = await page.evaluateHandle(() => {
-      const links = Array.from(document.querySelectorAll('nav a, header a, [class*="nav"] a, [class*="gnb"] a, [role="menuitem"]'));
-      return links.find(a => {
-        const text = a.textContent.trim().toLowerCase();
-        return text.includes('computer') || text.includes('display') || text.includes('monitor');
-      });
-    });
+    // 삼성 로고 제외 5번째 GNB 항목 클릭
+    // nav 또는 header 안의 최상위 링크/버튼 목록에서 5번째
+    const gnbItems = await page.$$([
+      'nav > ul > li',
+      'header nav > ul > li',
+      '#navbar > ul > li',
+      '.gnb > ul > li',
+      '.navigation > ul > li',
+      '[class*="gnb__list"] > li',
+      '[class*="nav__list"] > li',
+      '[class*="NavList"] > li',
+      '[class*="navList"] > li',
+      'ul[class*="nav"] > li',
+    ].join(', '));
 
-    const el = targetLink.asElement();
-    if (el) {
-      await el.hover();
+    console.log(`    GNB items found: ${gnbItems.length}`);
+
+    // 5번째 항목 (index 4)
+    if (gnbItems.length >= 5) {
+      const target = gnbItems[4];
+      const text = await target.evaluate(el => el.textContent.trim().substring(0, 40));
+      console.log(`    Hovering 5th GNB item: "${text}"`);
+      await target.hover();
       await page.waitForTimeout(2000);
       await page.screenshot({ path: path.join(dir, `${today}-gnb-hover.png`), fullPage: false });
-      console.log('    GNB hover captured');
+      console.log(`    GNB hover captured`);
     } else {
-      console.log('    GNB: no matching item found');
+      // fallback: 헤더 안 a 태그 기준으로 5번째
+      const headerLinks = await page.$$('header a, nav a');
+      console.log(`    Fallback: header links found: ${headerLinks.length}`);
+      if (headerLinks.length >= 5) {
+        const text = await headerLinks[4].evaluate(el => el.textContent.trim().substring(0, 40));
+        console.log(`    Hovering fallback 5th link: "${text}"`);
+        await headerLinks[4].hover();
+        await page.waitForTimeout(2000);
+        await page.screenshot({ path: path.join(dir, `${today}-gnb-hover.png`), fullPage: false });
+        console.log(`    GNB hover captured (fallback)`);
+      } else {
+        console.log(`    GNB: not enough items found`);
+      }
     }
   } catch (err) {
     console.log(`    GNB hover failed: ${err.message}`);
@@ -101,7 +125,7 @@ async function captureSite(context, country, page_config) {
 
   const page = await context.newPage();
   try {
-    console.log(`  [${country.code}] ${page_config.name} - ${url}`);
+    console.log(`  [${country.code}] ${page_config.name}`);
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
     await page.waitForTimeout(4000);
 
@@ -116,11 +140,10 @@ async function captureSite(context, country, page_config) {
       await captureGNBHover(page, dir);
     }
 
-    // hover 해제
+    // hover 해제 후 전체 페이지
     await page.mouse.move(68, 177);
     await page.waitForTimeout(1000);
 
-    // 전체 페이지
     await fullScroll(page);
     await page.screenshot({ path: path.join(dir, `${today}-full.png`), fullPage: true });
 
@@ -139,8 +162,7 @@ async function main() {
   const results = [];
 
   for (const country of config.countries) {
-    console.log(`\n📍 Country: ${country.name}`);
-
+    console.log(`\n📍 ${country.name}`);
     const browser = await chromium.launch({
       args: ['--no-sandbox', '--disable-blink-features=AutomationControlled']
     });
@@ -161,7 +183,6 @@ async function main() {
     await browser.close();
   }
 
-  // 메타데이터 저장
   const metaDir = path.join('docs', 'meta');
   fs.mkdirSync(metaDir, { recursive: true });
   fs.writeFileSync(path.join(metaDir, `${today}.json`), JSON.stringify(results, null, 2));
