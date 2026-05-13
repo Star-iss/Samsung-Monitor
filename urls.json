@@ -3,12 +3,14 @@
     {
       "name": "Samsung DE Homepage",
       "url": "https://www.samsung.com/de/",
-      "id": "samsung-de-home"
+      "id": "samsung-de-home",
+      "gnbHover": true
     },
     {
       "name": "Samsung DE Monitors",
       "url": "https://www.samsung.com/de/monitors/all-monitors/",
-      "id": "samsung-de-monitors"
+      "id": "samsung-de-monitors",
+      "gnbHover": false
     }
   ],
   "schedule": "0 9 * * *",

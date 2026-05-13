@@ -30,6 +30,61 @@ async function acceptCookies(page) {
   return false;
 }
 
+async function captureGNBHover(page, dir) {
+  try {
+    console.log('  Trying GNB hover capture...');
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(1000);
+
+    // 실제 GNB 링크 텍스트 목록 출력 (디버깅용)
+    const navLinks = await page.evaluate(() => {
+      const links = Array.from(document.querySelectorAll('nav a, header a, .gnb a, [class*="nav"] a, [class*="Nav"] a'));
+      return links.map(a => ({ text: a.textContent.trim(), href: a.href, className: a.className })).slice(0, 30);
+    });
+    console.log('  Found nav links:', JSON.stringify(navLinks.slice(0, 10)));
+
+    // Computer 관련 텍스트를 가진 링크 찾기
+    const targetLink = await page.evaluateHandle(() => {
+      const links = Array.from(document.querySelectorAll('nav a, header a, [class*="nav"] a, [class*="gnb"] a, [class*="GNB"] a, [role="menuitem"]'));
+      return links.find(a => {
+        const text = a.textContent.trim().toLowerCase();
+        return text.includes('computer') || text.includes('display') || text.includes('monitor');
+      });
+    });
+
+    const el = targetLink.asElement();
+    if (!el) {
+      console.log('  GNB link not found by text, trying all nav items...');
+
+      // 모든 최상위 nav 항목 hover 시도
+      const navItems = await page.$$('nav > ul > li, header > nav > ul > li, [class*="nav__item"], [class*="gnb__item"]');
+      console.log(`  Found ${navItems.length} nav items`);
+
+      for (let i = 0; i < navItems.length; i++) {
+        const text = await navItems[i].evaluate(el => el.textContent.trim().toLowerCase());
+        console.log(`  Nav item ${i}: ${text.substring(0, 30)}`);
+        if (text.includes('computer') || text.includes('display')) {
+          await navItems[i].hover();
+          await page.waitForTimeout(2000);
+          await page.screenshot({ path: path.join(dir, `${today}-gnb-hover.png`), fullPage: false });
+          console.log('  GNB hover captured via nav item');
+          return;
+        }
+      }
+      console.log('  GNB hover: no matching item found');
+      return;
+    }
+
+    await el.hover();
+    await page.waitForTimeout(2000);
+    await page.screenshot({ path: path.join(dir, `${today}-gnb-hover.png`), fullPage: false });
+    console.log('  GNB hover captured');
+
+  } catch (err) {
+    console.log(`  GNB hover failed: ${err.message}`);
+  }
+}
+
 async function fullScroll(page) {
   let previousHeight = 0;
   let attempts = 0;
@@ -41,29 +96,21 @@ async function fullScroll(page) {
 
     while (pos < currentHeight) {
       await page.evaluate((y) => window.scrollTo(0, y), pos);
-
-      // 이미지 로딩 대기: 네트워크가 잠잠해질 때까지
-      try {
-        await page.waitForLoadState('networkidle', { timeout: 8000 });
-      } catch {}
+      try { await page.waitForLoadState('networkidle', { timeout: 6000 }); } catch {}
       await page.waitForTimeout(1000);
-
-      // lazy load 강제 해제
       await page.evaluate(() => {
         document.querySelectorAll('img').forEach(img => {
           img.removeAttribute('loading');
-          if (img.dataset.src) { img.src = img.dataset.src; }
-          if (img.dataset.lazySrc) { img.src = img.dataset.lazySrc; }
+          if (img.dataset.src) img.src = img.dataset.src;
+          if (img.dataset.lazySrc) img.src = img.dataset.lazySrc;
         });
       });
-
       pos += Math.floor(viewportHeight * 0.7);
     }
 
     await page.waitForTimeout(5000);
     const newHeight = await page.evaluate(() => document.body.scrollHeight);
     console.log(`  Scroll attempt ${attempts + 1}: ${previousHeight} -> ${newHeight}px`);
-
     if (newHeight === previousHeight) break;
     previousHeight = newHeight;
     attempts++;
@@ -71,35 +118,6 @@ async function fullScroll(page) {
 
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(3000);
-}
-
-async function captureGNBHover(page, dir, gnbSelector, gnbName) {
-  try {
-    console.log(`  Capturing GNB hover: ${gnbName}`);
-
-    // 페이지 맨 위로
-    await page.evaluate(() => window.scrollTo(0, 0));
-    await page.waitForTimeout(1000);
-
-    // GNB 항목 hover
-    const gnbItem = await page.$(gnbSelector);
-    if (!gnbItem) {
-      console.log(`  GNB item not found: ${gnbSelector}`);
-      return;
-    }
-
-    await gnbItem.hover();
-    await page.waitForTimeout(2000); // 드롭다운 펼쳐질 때까지 대기
-
-    // hover 상태 스크린샷 (뷰포트만)
-    await page.screenshot({
-      path: path.join(dir, `${today}-gnb-hover.png`),
-      fullPage: false
-    });
-    console.log(`  GNB hover screenshot done`);
-  } catch (err) {
-    console.log(`  GNB hover failed: ${err.message}`);
-  }
 }
 
 async function capture(site) {
@@ -134,36 +152,18 @@ async function capture(site) {
     const dir = path.join('docs', 'screenshots', site.id);
     fs.mkdirSync(dir, { recursive: true });
 
-    // 1. 상단 뷰 캡처
+    // 1. 상단 뷰
     await page.screenshot({ path: path.join(dir, `${today}-top.png`), fullPage: false });
     console.log('  Top screenshot done');
 
-    // 2. GNB hover 캡처 (Computer & Displays)
-    const gnbSelectors = [
-      'a[href*="computer"]',
-      'a[href*="Computer"]',
-      'nav a:has-text("Computer")',
-      '.gnb a:has-text("Computer")',
-      'header a:has-text("Computer")',
-    ];
-
-    let gnbCaptured = false;
-    for (const selector of gnbSelectors) {
-      try {
-        const el = await page.$(selector);
-        if (el) {
-          await captureGNBHover(page, dir, selector, 'Computer & Displays');
-          gnbCaptured = true;
-          break;
-        }
-      } catch {}
+    // 2. GNB Hover - 홈페이지(첫 번째 사이트)만
+    if (site.gnbHover) {
+      await captureGNBHover(page, dir);
     }
-    if (!gnbCaptured) console.log('  GNB selector not matched, skipping');
 
-    // 3. 전체 페이지 스크롤 + 캡처
+    // 3. 전체 페이지
     console.log('  Scrolling to load all content...');
     await fullScroll(page);
-
     await page.screenshot({ path: path.join(dir, `${today}-full.png`), fullPage: true });
     console.log('  Full screenshot done');
 
