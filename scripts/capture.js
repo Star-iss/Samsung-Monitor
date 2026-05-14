@@ -32,51 +32,26 @@ async function acceptCookies(page) {
   return false;
 }
 
-async function captureGNBHover(page, dir) {
+async function captureGNBHover(page, dir, gnbText) {
   try {
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(1000);
 
-    // 삼성 로고 제외 5번째 GNB 항목 클릭
-    // nav 또는 header 안의 최상위 링크/버튼 목록에서 5번째
-    const gnbItems = await page.$$([
-      'nav > ul > li',
-      'header nav > ul > li',
-      '#navbar > ul > li',
-      '.gnb > ul > li',
-      '.navigation > ul > li',
-      '[class*="gnb__list"] > li',
-      '[class*="nav__list"] > li',
-      '[class*="NavList"] > li',
-      '[class*="navList"] > li',
-      'ul[class*="nav"] > li',
-    ].join(', '));
+    // 정확한 텍스트로 GNB 항목 찾기
+    const target = await page.evaluateHandle((text) => {
+      const allEls = Array.from(document.querySelectorAll('nav a, header a, nav button, header button, nav li, [class*="gnb"] li, [class*="nav"] li'));
+      return allEls.find(el => el.textContent.trim() === text);
+    }, gnbText);
 
-    console.log(`    GNB items found: ${gnbItems.length}`);
-
-    // 5번째 항목 (index 4)
-    if (gnbItems.length >= 5) {
-      const target = gnbItems[4];
-      const text = await target.evaluate(el => el.textContent.trim().substring(0, 40));
-      console.log(`    Hovering 5th GNB item: "${text}"`);
-      await target.hover();
+    const el = target.asElement();
+    if (el) {
+      console.log(`    GNB found: "${gnbText}"`);
+      await el.hover();
       await page.waitForTimeout(2000);
       await page.screenshot({ path: path.join(dir, `${today}-gnb-hover.png`), fullPage: false });
       console.log(`    GNB hover captured`);
     } else {
-      // fallback: 헤더 안 a 태그 기준으로 5번째
-      const headerLinks = await page.$$('header a, nav a');
-      console.log(`    Fallback: header links found: ${headerLinks.length}`);
-      if (headerLinks.length >= 5) {
-        const text = await headerLinks[4].evaluate(el => el.textContent.trim().substring(0, 40));
-        console.log(`    Hovering fallback 5th link: "${text}"`);
-        await headerLinks[4].hover();
-        await page.waitForTimeout(2000);
-        await page.screenshot({ path: path.join(dir, `${today}-gnb-hover.png`), fullPage: false });
-        console.log(`    GNB hover captured (fallback)`);
-      } else {
-        console.log(`    GNB: not enough items found`);
-      }
+      console.log(`    GNB not found for text: "${gnbText}"`);
     }
   } catch (err) {
     console.log(`    GNB hover failed: ${err.message}`);
@@ -135,9 +110,9 @@ async function captureSite(context, country, page_config) {
     // 상단 뷰
     await page.screenshot({ path: path.join(dir, `${today}-top.png`), fullPage: false });
 
-    // GNB Hover (홈페이지만)
-    if (page_config.gnbHover) {
-      await captureGNBHover(page, dir);
+    // GNB Hover (홈페이지만, gnbText 사용)
+    if (page_config.gnbHover && country.gnbText) {
+      await captureGNBHover(page, dir, country.gnbText);
     }
 
     // hover 해제 후 전체 페이지

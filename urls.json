@@ -1,20 +1,20 @@
 {
   "countries": [
-    { "code": "de", "name": "🇩🇪 DE" },
-    { "code": "au", "name": "🇦🇺 AU" },
-    { "code": "be", "name": "🇧🇪 BE" },
-    { "code": "be_fr", "name": "🇧🇪 BE-FR" },
-    { "code": "fr", "name": "🇫🇷 FR" },
-    { "code": "it", "name": "🇮🇹 IT" },
-    { "code": "sec", "name": "🇰🇷 KR" },
-    { "code": "nl", "name": "🇳🇱 NL" },
-    { "code": "no", "name": "🇳🇴 NO" },
-    { "code": "pt", "name": "🇵🇹 PT" },
-    { "code": "es", "name": "🇪🇸 ES" },
-    { "code": "se", "name": "🇸🇪 SE" },
-    { "code": "tr", "name": "🇹🇷 TR" },
-    { "code": "uk", "name": "🇬🇧 UK" },
-    { "code": "us", "name": "🇺🇸 US" }
+    { "code": "de", "name": "🇩🇪 DE", "gnbText": "Computers & Displays" },
+    { "code": "au", "name": "🇦🇺 AU", "gnbText": "Monitors & Storage" },
+    { "code": "be", "name": "🇧🇪 BE", "gnbText": "Computers & Monitors" },
+    { "code": "be_fr", "name": "🇧🇪 BE-FR", "gnbText": "Computers & Monitors" },
+    { "code": "fr", "name": "🇫🇷 FR", "gnbText": "Computers & Screens" },
+    { "code": "it", "name": "🇮🇹 IT", "gnbText": "Computers and Displays" },
+    { "code": "sec", "name": "🇰🇷 KR", "gnbText": "PC/주변기기" },
+    { "code": "nl", "name": "🇳🇱 NL", "gnbText": "Computers & Monitors" },
+    { "code": "no", "name": "🇳🇴 NO", "gnbText": "PCs & Monitors" },
+    { "code": "pt", "name": "🇵🇹 PT", "gnbText": "Monitors & Storage" },
+    { "code": "es", "name": "🇪🇸 ES", "gnbText": "Computing and Displays" },
+    { "code": "se", "name": "🇸🇪 SE", "gnbText": "Computers & Monitors" },
+    { "code": "tr", "name": "🇹🇷 TR", "gnbText": "Monitoring & Storage" },
+    { "code": "uk", "name": "🇬🇧 UK", "gnbText": "Computers & Monitors" },
+    { "code": "us", "name": "🇺🇸 US", "gnbText": "Computers & Monitors" }
   ],
   "pages": [
     {
