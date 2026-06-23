@@ -31,33 +31,28 @@ const html = `<!DOCTYPE html>
     border-bottom: 1px solid #e0e0e0;
     display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
   }
-
-  /* 날짜 선택 */
   .toolbar label { font-size: 0.85rem; color: #555; font-weight: 600; }
   .toolbar select {
     padding: 6px 12px; border: 1px solid #ccc;
     border-radius: 6px; font-size: 0.85rem; cursor: pointer;
   }
 
-  /* 국가 슬라이서 */
   .country-slicer {
-    background: white; padding: 12px 32px;
+    background: white; padding: 10px 32px;
     border-bottom: 1px solid #e0e0e0;
-    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
   }
   .slicer-label { font-size: 0.82rem; color: #555; font-weight: 600; margin-right: 4px; }
   .country-btn {
-    padding: 5px 14px; border: 1.5px solid #ddd;
+    padding: 5px 12px; border: 1.5px solid #ddd;
     border-radius: 20px; background: white;
-    font-size: 0.8rem; cursor: pointer; color: #444;
-    transition: all 0.15s;
+    font-size: 0.82rem; cursor: pointer; color: #444;
+    transition: all 0.15s; display: flex; align-items: center; gap: 5px;
   }
   .country-btn:hover { border-color: #1428A0; color: #1428A0; }
   .country-btn.active { background: #1428A0; color: white; border-color: #1428A0; font-weight: 600; }
-  .country-btn.all { background: #f0f2f5; }
-  .country-btn.all.active { background: #1428A0; color: white; }
+  .country-btn .flag { font-size: 1rem; line-height: 1; }
 
-  /* 그리드 */
   .grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
@@ -73,12 +68,9 @@ const html = `<!DOCTYPE html>
   .card:hover { transform: translateY(-2px); }
   .card.hidden { display: none; }
 
-  .card-header { padding: 14px 18px 10px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 10px; }
-  .country-badge {
-    background: #e8eaf6; color: #1428A0;
-    font-size: 0.75rem; font-weight: 700;
-    padding: 2px 8px; border-radius: 4px;
-  }
+  .card-header { padding: 14px 18px 10px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 8px; }
+  .country-flag { font-size: 1.2rem; }
+  .country-code { background: #e8eaf6; color: #1428A0; font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
   .site-name { font-weight: 700; font-size: 0.95rem; color: #222; }
   .site-url { font-size: 0.75rem; color: #aaa; margin-left: auto; text-decoration: none; }
   .site-url:hover { color: #1428A0; }
@@ -101,10 +93,7 @@ const html = `<!DOCTYPE html>
     background: rgba(0,0,0,0.55); color: white;
     font-size: 0.68rem; padding: 2px 7px; border-radius: 4px; z-index: 1;
   }
-  .img-wrap img {
-    width: 100%; height: 220px;
-    object-fit: cover; object-position: top; display: block;
-  }
+  .img-wrap img { width: 100%; height: 220px; object-fit: cover; object-position: top; display: block; }
   .no-img { text-align:center; padding: 50px 0; color: #bbb; font-size: 0.82rem; }
 
   .card-footer {
@@ -117,7 +106,6 @@ const html = `<!DOCTYPE html>
   }
   .badge:hover { background: #1428A0; color: white; }
 
-  /* Modal */
   .modal-overlay {
     display: none; position: fixed; inset: 0;
     background: rgba(0,0,0,0.75); z-index: 100;
@@ -145,11 +133,6 @@ const html = `<!DOCTYPE html>
     display: inline-block; margin-top: 10px; background: #1428A0; color: white;
     padding: 7px 16px; border-radius: 8px; font-size: 0.82rem; text-decoration: none;
   }
-
-  @media (max-width: 600px) {
-    .grid { grid-template-columns: 1fr; padding: 16px; }
-    .country-slicer { padding: 12px 16px; }
-  }
 </style>
 </head>
 <body>
@@ -163,7 +146,7 @@ const html = `<!DOCTYPE html>
 </header>
 
 <div class="toolbar">
-  <label>📅 날짜 선택:</label>
+  <label>📅 날짜:</label>
   <select id="dateSelect" onchange="changeDate(this.value)">
     ${dates.map(d => `<option value="${d}">${d}</option>`).join('')}
   </select>
@@ -172,13 +155,20 @@ const html = `<!DOCTYPE html>
 
 <div class="country-slicer">
   <span class="slicer-label">🌍 국가:</span>
-  <button class="country-btn all active" onclick="filterCountry('all', this)">전체</button>
-  ${config.countries.map(c => `<button class="country-btn" data-country="${c.code}" onclick="filterCountry('${c.code}', this)">${c.name}</button>`).join('')}
+  ${config.countries.map((c, i) => {
+    const flag = c.name.match(/(\p{Emoji})/u)?.[1] || '';
+    const code = c.name.replace(/\p{Emoji}/gu, '').trim();
+    return `<button class="country-btn${i === 0 ? ' active' : ''}" data-country="${c.code}" onclick="filterCountry('${c.code}', this)">
+      <span class="flag">${flag}</span>${code}
+    </button>`;
+  }).join('')}
 </div>
 
 <div class="grid" id="grid">
-  ${config.countries.map(country =>
-    config.pages.map(page_config => {
+  ${config.countries.map((country, ci) => {
+    const flag = country.name.match(/(\p{Emoji})/u)?.[1] || '';
+    const code = country.name.replace(/\p{Emoji}/gu, '').trim();
+    return config.pages.map(page_config => {
       const siteId = `${country.code}-${page_config.id}`;
       const topImg = `screenshots/${siteId}/${latest}-top.png`;
       const gnbImg = `screenshots/${siteId}/${latest}-gnb-hover.png`;
@@ -190,9 +180,10 @@ const html = `<!DOCTYPE html>
       ].filter(Boolean).join('');
 
       return `
-      <div class="card" data-country="${country.code}">
+      <div class="card${ci === 0 ? '' : ' hidden'}" data-country="${country.code}">
         <div class="card-header">
-          <span class="country-badge">${country.name}</span>
+          <span class="country-flag">${flag}</span>
+          <span class="country-code">${code}</span>
           <span class="site-name">${page_config.name}</span>
           <a href="https://www.samsung.com/${country.code}${page_config.path}" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -219,11 +210,10 @@ const html = `<!DOCTYPE html>
           ${page_config.gnbHover ? `<a href="${gnbImg}" target="_blank" class="badge">📂 GNB 원본</a>` : ''}
         </div>
       </div>`;
-    }).join('')
-  ).join('')}
+    }).join('');
+  }).join('')}
 </div>
 
-<!-- Modal -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
   <div class="modal">
     <button class="modal-close" onclick="closeModal()">✕</button>
@@ -237,24 +227,17 @@ const html = `<!DOCTYPE html>
 const config = ${JSON.stringify(config)};
 const dates = ${JSON.stringify(dates)};
 let currentDate = dates[0] || '';
-let currentCountry = 'all';
 
 function filterCountry(code, btn) {
-  currentCountry = code;
   document.querySelectorAll('.country-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.querySelectorAll('.card').forEach(card => {
-    if (code === 'all' || card.dataset.country === code) {
-      card.classList.remove('hidden');
-    } else {
-      card.classList.add('hidden');
-    }
+    card.classList.toggle('hidden', card.dataset.country !== code);
   });
 }
 
 function changeDate(date) {
   currentDate = date;
-  // 모든 카드 이미지 업데이트
   config.countries.forEach(country => {
     config.pages.forEach(page => {
       const siteId = country.code + '-' + page.id;
@@ -264,16 +247,13 @@ function changeDate(date) {
         const gnbEl = document.querySelector('#' + siteId + '-gnb img');
         if (gnbEl) gnbEl.src = 'screenshots/' + siteId + '/' + date + '-gnb-hover.png';
       }
-      // 카드 footer 링크 업데이트
       const card = topEl ? topEl.closest('.card') : null;
       if (card) {
-        const badges = card.querySelectorAll('.badge');
-        badges.forEach(b => {
+        card.querySelectorAll('.badge').forEach(b => {
           if (b.href.includes('-full.png')) b.href = 'screenshots/' + siteId + '/' + date + '-full.png';
           if (b.href.includes('-top.png')) b.href = 'screenshots/' + siteId + '/' + date + '-top.png';
           if (b.href.includes('-gnb-hover.png')) b.href = 'screenshots/' + siteId + '/' + date + '-gnb-hover.png';
         });
-        // img-label 업데이트
         card.querySelectorAll('.img-label').forEach(lbl => {
           lbl.textContent = lbl.textContent.replace(/\\d{4}-\\d{2}-\\d{2}/, date);
         });

@@ -5,6 +5,12 @@ const path = require('path');
 const config = JSON.parse(fs.readFileSync('urls.json', 'utf8'));
 const today = new Date().toISOString().split('T')[0];
 
+// 실행 시 국가 코드 인자 받기 (병렬 실행용)
+const targetCountry = process.argv[2] || null;
+const countries = targetCountry
+  ? config.countries.filter(c => c.code === targetCountry)
+  : config.countries;
+
 function buildUrl(countryCode, pagePath) {
   return `https://www.samsung.com/${countryCode}${pagePath}`;
 }
@@ -37,7 +43,6 @@ async function captureGNBHover(page, dir, gnbText) {
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(1000);
 
-    // 정확한 텍스트로 GNB 항목 찾기
     const target = await page.evaluateHandle((text) => {
       const allEls = Array.from(document.querySelectorAll('nav a, header a, nav button, header button, nav li, [class*="gnb"] li, [class*="nav"] li'));
       return allEls.find(el => el.textContent.trim() === text);
@@ -45,13 +50,12 @@ async function captureGNBHover(page, dir, gnbText) {
 
     const el = target.asElement();
     if (el) {
-      console.log(`    GNB found: "${gnbText}"`);
       await el.hover();
       await page.waitForTimeout(2000);
       await page.screenshot({ path: path.join(dir, `${today}-gnb-hover.png`), fullPage: false });
-      console.log(`    GNB hover captured`);
+      console.log(`    GNB hover captured: "${gnbText}"`);
     } else {
-      console.log(`    GNB not found for text: "${gnbText}"`);
+      console.log(`    GNB not found: "${gnbText}"`);
     }
   } catch (err) {
     console.log(`    GNB hover failed: ${err.message}`);
@@ -107,15 +111,12 @@ async function captureSite(context, country, page_config) {
     await acceptCookies(page);
     await page.waitForTimeout(2000);
 
-    // 상단 뷰
     await page.screenshot({ path: path.join(dir, `${today}-top.png`), fullPage: false });
 
-    // GNB Hover (홈페이지만, gnbText 사용)
     if (page_config.gnbHover && country.gnbText) {
       await captureGNBHover(page, dir, country.gnbText);
     }
 
-    // hover 해제 후 전체 페이지
     await page.mouse.move(68, 177);
     await page.waitForTimeout(1000);
 
@@ -127,7 +128,7 @@ async function captureSite(context, country, page_config) {
 
   } catch (err) {
     console.error(`    ❌ Failed: ${err.message}`);
-    return { siteId, country: country.code, page: page_config.id, url, date: today, success: false, error: err.message };
+    return { siteId, country: country.code, page: page_config.id, url, date: today, success: false };
   } finally {
     await page.close();
   }
@@ -136,8 +137,8 @@ async function captureSite(context, country, page_config) {
 async function main() {
   const results = [];
 
-  for (const country of config.countries) {
-    console.log(`\n📍 ${country.name}`);
+  for (const country of countries) {
+    console.log(`\n📍 ${country.name} (${country.code})`);
     const browser = await chromium.launch({
       args: ['--no-sandbox', '--disable-blink-features=AutomationControlled']
     });
@@ -158,9 +159,18 @@ async function main() {
     await browser.close();
   }
 
+  // 메타데이터 저장
   const metaDir = path.join('docs', 'meta');
   fs.mkdirSync(metaDir, { recursive: true });
-  fs.writeFileSync(path.join(metaDir, `${today}.json`), JSON.stringify(results, null, 2));
+
+  // 기존 오늘 결과와 병합 (병렬 실행 시 다른 국가 결과 유지)
+  const todayMetaPath = path.join(metaDir, `${today}.json`);
+  let existing = [];
+  if (fs.existsSync(todayMetaPath)) {
+    existing = JSON.parse(fs.readFileSync(todayMetaPath, 'utf8'));
+  }
+  const merged = [...existing.filter(r => !results.find(nr => nr.siteId === r.siteId)), ...results];
+  fs.writeFileSync(todayMetaPath, JSON.stringify(merged, null, 2));
 
   const indexPath = path.join(metaDir, 'index.json');
   let index = fs.existsSync(indexPath) ? JSON.parse(fs.readFileSync(indexPath, 'utf8')) : [];
