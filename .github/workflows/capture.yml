@@ -2,8 +2,8 @@ name: Daily Screenshot Capture
 
 on:
   schedule:
-    - cron: '0 9 * * *'   # 매일 09:00 UTC = 한국 18:00 / 독일 10:00-11:00
-  workflow_dispatch:        # 수동 실행 버튼 (테스트용)
+    - cron: '0 9 * * *'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -11,8 +11,13 @@ permissions:
   id-token: write
 
 jobs:
+  # 1. 국가별 병렬 캡처
   capture:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        country: [de, au, be, be_fr, fr, it, sec, nl, no, pt, es, se, tr, uk, us]
 
     steps:
       - name: Checkout
@@ -28,11 +33,47 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Install Playwright browsers
+      - name: Install Playwright
         run: npx playwright install chromium --with-deps
 
-      - name: Run screenshot capture
-        run: node scripts/capture.js
+      - name: Capture screenshots
+        run: node scripts/capture.js ${{ matrix.country }}
+
+      - name: Upload screenshots as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-${{ matrix.country }}
+          path: docs/screenshots/
+          retention-days: 1
+
+  # 2. 병렬 캡처 완료 후 합치기 + 대시보드 생성 + 배포
+  deploy:
+    runs-on: ubuntu-latest
+    needs: capture
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download all screenshots
+        uses: actions/download-artifact@v4
+        with:
+          pattern: screenshots-*
+          path: docs/screenshots/
+          merge-multiple: true
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Delete old screenshots (30 days)
+        run: node scripts/cleanup.js
 
       - name: Generate dashboard
         run: node scripts/generate-dashboard.js
@@ -42,7 +83,7 @@ jobs:
           git config user.name "Screenshot Bot"
           git config user.email "bot@github.com"
           git add docs/
-          git commit -m "Daily capture: $(date +%Y-%m-%d)" || echo "No changes"
+          git diff --staged --quiet || git commit -m "Daily capture: $(date +%Y-%m-%d)"
           git push
 
       - name: Deploy to GitHub Pages
