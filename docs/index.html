@@ -21,33 +21,28 @@
     border-bottom: 1px solid #e0e0e0;
     display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
   }
-
-  /* 날짜 선택 */
   .toolbar label { font-size: 0.85rem; color: #555; font-weight: 600; }
   .toolbar select {
     padding: 6px 12px; border: 1px solid #ccc;
     border-radius: 6px; font-size: 0.85rem; cursor: pointer;
   }
 
-  /* 국가 슬라이서 */
   .country-slicer {
-    background: white; padding: 12px 32px;
+    background: white; padding: 10px 32px;
     border-bottom: 1px solid #e0e0e0;
-    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
   }
   .slicer-label { font-size: 0.82rem; color: #555; font-weight: 600; margin-right: 4px; }
   .country-btn {
-    padding: 5px 14px; border: 1.5px solid #ddd;
+    padding: 5px 12px; border: 1.5px solid #ddd;
     border-radius: 20px; background: white;
-    font-size: 0.8rem; cursor: pointer; color: #444;
-    transition: all 0.15s;
+    font-size: 0.82rem; cursor: pointer; color: #444;
+    transition: all 0.15s; display: flex; align-items: center; gap: 5px;
   }
   .country-btn:hover { border-color: #1428A0; color: #1428A0; }
   .country-btn.active { background: #1428A0; color: white; border-color: #1428A0; font-weight: 600; }
-  .country-btn.all { background: #f0f2f5; }
-  .country-btn.all.active { background: #1428A0; color: white; }
+  .country-btn .flag { font-size: 1rem; line-height: 1; }
 
-  /* 그리드 */
   .grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
@@ -63,12 +58,9 @@
   .card:hover { transform: translateY(-2px); }
   .card.hidden { display: none; }
 
-  .card-header { padding: 14px 18px 10px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 10px; }
-  .country-badge {
-    background: #e8eaf6; color: #1428A0;
-    font-size: 0.75rem; font-weight: 700;
-    padding: 2px 8px; border-radius: 4px;
-  }
+  .card-header { padding: 14px 18px 10px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 8px; }
+  .country-flag { font-size: 1.2rem; }
+  .country-code { background: #e8eaf6; color: #1428A0; font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
   .site-name { font-weight: 700; font-size: 0.95rem; color: #222; }
   .site-url { font-size: 0.75rem; color: #aaa; margin-left: auto; text-decoration: none; }
   .site-url:hover { color: #1428A0; }
@@ -91,10 +83,7 @@
     background: rgba(0,0,0,0.55); color: white;
     font-size: 0.68rem; padding: 2px 7px; border-radius: 4px; z-index: 1;
   }
-  .img-wrap img {
-    width: 100%; height: 220px;
-    object-fit: cover; object-position: top; display: block;
-  }
+  .img-wrap img { width: 100%; height: 220px; object-fit: cover; object-position: top; display: block; }
   .no-img { text-align:center; padding: 50px 0; color: #bbb; font-size: 0.82rem; }
 
   .card-footer {
@@ -107,7 +96,6 @@
   }
   .badge:hover { background: #1428A0; color: white; }
 
-  /* Modal */
   .modal-overlay {
     display: none; position: fixed; inset: 0;
     background: rgba(0,0,0,0.75); z-index: 100;
@@ -135,11 +123,6 @@
     display: inline-block; margin-top: 10px; background: #1428A0; color: white;
     padding: 7px 16px; border-radius: 8px; font-size: 0.82rem; text-decoration: none;
   }
-
-  @media (max-width: 600px) {
-    .grid { grid-template-columns: 1fr; padding: 16px; }
-    .country-slicer { padding: 12px 16px; }
-  }
 </style>
 </head>
 <body>
@@ -153,24 +136,54 @@
 </header>
 
 <div class="toolbar">
-  <label>📅 날짜 선택:</label>
+  <label>📅 날짜:</label>
   <select id="dateSelect" onchange="changeDate(this.value)">
-    <option value="2026-06-22">2026-06-22</option><option value="2026-06-21">2026-06-21</option><option value="2026-06-20">2026-06-20</option><option value="2026-06-19">2026-06-19</option><option value="2026-06-18">2026-06-18</option><option value="2026-06-17">2026-06-17</option><option value="2026-06-16">2026-06-16</option><option value="2026-06-15">2026-06-15</option><option value="2026-06-14">2026-06-14</option><option value="2026-06-13">2026-06-13</option><option value="2026-06-12">2026-06-12</option><option value="2026-06-11">2026-06-11</option><option value="2026-06-10">2026-06-10</option><option value="2026-06-09">2026-06-09</option><option value="2026-06-08">2026-06-08</option><option value="2026-06-07">2026-06-07</option><option value="2026-06-06">2026-06-06</option><option value="2026-06-05">2026-06-05</option><option value="2026-06-04">2026-06-04</option><option value="2026-06-03">2026-06-03</option><option value="2026-06-02">2026-06-02</option><option value="2026-06-01">2026-06-01</option><option value="2026-05-31">2026-05-31</option><option value="2026-05-30">2026-05-30</option><option value="2026-05-29">2026-05-29</option><option value="2026-05-28">2026-05-28</option><option value="2026-05-27">2026-05-27</option><option value="2026-05-25">2026-05-25</option><option value="2026-05-24">2026-05-24</option><option value="2026-05-23">2026-05-23</option><option value="2026-05-22">2026-05-22</option><option value="2026-05-21">2026-05-21</option><option value="2026-05-20">2026-05-20</option><option value="2026-05-19">2026-05-19</option><option value="2026-05-18">2026-05-18</option><option value="2026-05-17">2026-05-17</option><option value="2026-05-16">2026-05-16</option><option value="2026-05-15">2026-05-15</option><option value="2026-05-14">2026-05-14</option><option value="2026-05-13">2026-05-13</option><option value="2026-05-12">2026-05-12</option>
+    <option value="2026-06-22">2026-06-22</option><option value="2026-06-21">2026-06-21</option><option value="2026-06-20">2026-06-20</option><option value="2026-06-19">2026-06-19</option><option value="2026-06-18">2026-06-18</option><option value="2026-06-17">2026-06-17</option><option value="2026-06-16">2026-06-16</option><option value="2026-06-15">2026-06-15</option><option value="2026-06-14">2026-06-14</option><option value="2026-06-13">2026-06-13</option><option value="2026-06-12">2026-06-12</option><option value="2026-06-11">2026-06-11</option><option value="2026-06-10">2026-06-10</option><option value="2026-06-09">2026-06-09</option><option value="2026-06-08">2026-06-08</option><option value="2026-06-07">2026-06-07</option><option value="2026-06-06">2026-06-06</option><option value="2026-06-05">2026-06-05</option><option value="2026-06-04">2026-06-04</option><option value="2026-06-03">2026-06-03</option><option value="2026-06-02">2026-06-02</option><option value="2026-06-01">2026-06-01</option><option value="2026-05-31">2026-05-31</option><option value="2026-05-30">2026-05-30</option><option value="2026-05-29">2026-05-29</option><option value="2026-05-28">2026-05-28</option><option value="2026-05-27">2026-05-27</option><option value="2026-05-25">2026-05-25</option><option value="2026-05-24">2026-05-24</option>
   </select>
   <span style="margin-left:auto;font-size:0.82rem;color:#888;">총 15개 국가 × 2개 페이지</span>
 </div>
 
 <div class="country-slicer">
   <span class="slicer-label">🌍 국가:</span>
-  <button class="country-btn all active" onclick="filterCountry('all', this)">전체</button>
-  <button class="country-btn" data-country="de" onclick="filterCountry('de', this)">🇩🇪 DE</button><button class="country-btn" data-country="au" onclick="filterCountry('au', this)">🇦🇺 AU</button><button class="country-btn" data-country="be" onclick="filterCountry('be', this)">🇧🇪 BE</button><button class="country-btn" data-country="be_fr" onclick="filterCountry('be_fr', this)">🇧🇪 BE-FR</button><button class="country-btn" data-country="fr" onclick="filterCountry('fr', this)">🇫🇷 FR</button><button class="country-btn" data-country="it" onclick="filterCountry('it', this)">🇮🇹 IT</button><button class="country-btn" data-country="sec" onclick="filterCountry('sec', this)">🇰🇷 KR</button><button class="country-btn" data-country="nl" onclick="filterCountry('nl', this)">🇳🇱 NL</button><button class="country-btn" data-country="no" onclick="filterCountry('no', this)">🇳🇴 NO</button><button class="country-btn" data-country="pt" onclick="filterCountry('pt', this)">🇵🇹 PT</button><button class="country-btn" data-country="es" onclick="filterCountry('es', this)">🇪🇸 ES</button><button class="country-btn" data-country="se" onclick="filterCountry('se', this)">🇸🇪 SE</button><button class="country-btn" data-country="tr" onclick="filterCountry('tr', this)">🇹🇷 TR</button><button class="country-btn" data-country="uk" onclick="filterCountry('uk', this)">🇬🇧 UK</button><button class="country-btn" data-country="us" onclick="filterCountry('us', this)">🇺🇸 US</button>
+  <button class="country-btn active" data-country="de" onclick="filterCountry('de', this)">
+      <span class="flag">🇩</span>DE
+    </button><button class="country-btn" data-country="au" onclick="filterCountry('au', this)">
+      <span class="flag">🇦</span>AU
+    </button><button class="country-btn" data-country="be" onclick="filterCountry('be', this)">
+      <span class="flag">🇧</span>BE
+    </button><button class="country-btn" data-country="be_fr" onclick="filterCountry('be_fr', this)">
+      <span class="flag">🇧</span>BE-FR
+    </button><button class="country-btn" data-country="fr" onclick="filterCountry('fr', this)">
+      <span class="flag">🇫</span>FR
+    </button><button class="country-btn" data-country="it" onclick="filterCountry('it', this)">
+      <span class="flag">🇮</span>IT
+    </button><button class="country-btn" data-country="sec" onclick="filterCountry('sec', this)">
+      <span class="flag">🇰</span>KR
+    </button><button class="country-btn" data-country="nl" onclick="filterCountry('nl', this)">
+      <span class="flag">🇳</span>NL
+    </button><button class="country-btn" data-country="no" onclick="filterCountry('no', this)">
+      <span class="flag">🇳</span>NO
+    </button><button class="country-btn" data-country="pt" onclick="filterCountry('pt', this)">
+      <span class="flag">🇵</span>PT
+    </button><button class="country-btn" data-country="es" onclick="filterCountry('es', this)">
+      <span class="flag">🇪</span>ES
+    </button><button class="country-btn" data-country="se" onclick="filterCountry('se', this)">
+      <span class="flag">🇸</span>SE
+    </button><button class="country-btn" data-country="tr" onclick="filterCountry('tr', this)">
+      <span class="flag">🇹</span>TR
+    </button><button class="country-btn" data-country="uk" onclick="filterCountry('uk', this)">
+      <span class="flag">🇬</span>UK
+    </button><button class="country-btn" data-country="us" onclick="filterCountry('us', this)">
+      <span class="flag">🇺</span>US
+    </button>
 </div>
 
 <div class="grid" id="grid">
   
       <div class="card" data-country="de">
         <div class="card-header">
-          <span class="country-badge">🇩🇪 DE</span>
+          <span class="country-flag">🇩</span>
+          <span class="country-code">DE</span>
           <span class="site-name">Homepage</span>
           <a href="https://www.samsung.com/de/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -199,7 +212,8 @@
       </div>
       <div class="card" data-country="de">
         <div class="card-header">
-          <span class="country-badge">🇩🇪 DE</span>
+          <span class="country-flag">🇩</span>
+          <span class="country-code">DE</span>
           <span class="site-name">Monitors</span>
           <a href="https://www.samsung.com/de/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -220,9 +234,10 @@
           
         </div>
       </div>
-      <div class="card" data-country="au">
+      <div class="card hidden" data-country="au">
         <div class="card-header">
-          <span class="country-badge">🇦🇺 AU</span>
+          <span class="country-flag">🇦</span>
+          <span class="country-code">AU</span>
           <span class="site-name">Homepage</span>
           <a href="https://www.samsung.com/au/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -249,9 +264,10 @@
           <a href="screenshots/au-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
         </div>
       </div>
-      <div class="card" data-country="au">
+      <div class="card hidden" data-country="au">
         <div class="card-header">
-          <span class="country-badge">🇦🇺 AU</span>
+          <span class="country-flag">🇦</span>
+          <span class="country-code">AU</span>
           <span class="site-name">Monitors</span>
           <a href="https://www.samsung.com/au/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -272,9 +288,10 @@
           
         </div>
       </div>
-      <div class="card" data-country="be">
+      <div class="card hidden" data-country="be">
         <div class="card-header">
-          <span class="country-badge">🇧🇪 BE</span>
+          <span class="country-flag">🇧</span>
+          <span class="country-code">BE</span>
           <span class="site-name">Homepage</span>
           <a href="https://www.samsung.com/be/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -301,9 +318,10 @@
           <a href="screenshots/be-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
         </div>
       </div>
-      <div class="card" data-country="be">
+      <div class="card hidden" data-country="be">
         <div class="card-header">
-          <span class="country-badge">🇧🇪 BE</span>
+          <span class="country-flag">🇧</span>
+          <span class="country-code">BE</span>
           <span class="site-name">Monitors</span>
           <a href="https://www.samsung.com/be/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -324,9 +342,10 @@
           
         </div>
       </div>
-      <div class="card" data-country="be_fr">
+      <div class="card hidden" data-country="be_fr">
         <div class="card-header">
-          <span class="country-badge">🇧🇪 BE-FR</span>
+          <span class="country-flag">🇧</span>
+          <span class="country-code">BE-FR</span>
           <span class="site-name">Homepage</span>
           <a href="https://www.samsung.com/be_fr/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -353,9 +372,10 @@
           <a href="screenshots/be_fr-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
         </div>
       </div>
-      <div class="card" data-country="be_fr">
+      <div class="card hidden" data-country="be_fr">
         <div class="card-header">
-          <span class="country-badge">🇧🇪 BE-FR</span>
+          <span class="country-flag">🇧</span>
+          <span class="country-code">BE-FR</span>
           <span class="site-name">Monitors</span>
           <a href="https://www.samsung.com/be_fr/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -376,9 +396,10 @@
           
         </div>
       </div>
-      <div class="card" data-country="fr">
+      <div class="card hidden" data-country="fr">
         <div class="card-header">
-          <span class="country-badge">🇫🇷 FR</span>
+          <span class="country-flag">🇫</span>
+          <span class="country-code">FR</span>
           <span class="site-name">Homepage</span>
           <a href="https://www.samsung.com/fr/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -405,9 +426,10 @@
           <a href="screenshots/fr-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
         </div>
       </div>
-      <div class="card" data-country="fr">
+      <div class="card hidden" data-country="fr">
         <div class="card-header">
-          <span class="country-badge">🇫🇷 FR</span>
+          <span class="country-flag">🇫</span>
+          <span class="country-code">FR</span>
           <span class="site-name">Monitors</span>
           <a href="https://www.samsung.com/fr/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -428,9 +450,10 @@
           
         </div>
       </div>
-      <div class="card" data-country="it">
+      <div class="card hidden" data-country="it">
         <div class="card-header">
-          <span class="country-badge">🇮🇹 IT</span>
+          <span class="country-flag">🇮</span>
+          <span class="country-code">IT</span>
           <span class="site-name">Homepage</span>
           <a href="https://www.samsung.com/it/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -457,9 +480,10 @@
           <a href="screenshots/it-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
         </div>
       </div>
-      <div class="card" data-country="it">
+      <div class="card hidden" data-country="it">
         <div class="card-header">
-          <span class="country-badge">🇮🇹 IT</span>
+          <span class="country-flag">🇮</span>
+          <span class="country-code">IT</span>
           <span class="site-name">Monitors</span>
           <a href="https://www.samsung.com/it/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -480,9 +504,10 @@
           
         </div>
       </div>
-      <div class="card" data-country="sec">
+      <div class="card hidden" data-country="sec">
         <div class="card-header">
-          <span class="country-badge">🇰🇷 KR</span>
+          <span class="country-flag">🇰</span>
+          <span class="country-code">KR</span>
           <span class="site-name">Homepage</span>
           <a href="https://www.samsung.com/sec/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -509,9 +534,10 @@
           <a href="screenshots/sec-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
         </div>
       </div>
-      <div class="card" data-country="sec">
+      <div class="card hidden" data-country="sec">
         <div class="card-header">
-          <span class="country-badge">🇰🇷 KR</span>
+          <span class="country-flag">🇰</span>
+          <span class="country-code">KR</span>
           <span class="site-name">Monitors</span>
           <a href="https://www.samsung.com/sec/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -532,9 +558,10 @@
           
         </div>
       </div>
-      <div class="card" data-country="nl">
+      <div class="card hidden" data-country="nl">
         <div class="card-header">
-          <span class="country-badge">🇳🇱 NL</span>
+          <span class="country-flag">🇳</span>
+          <span class="country-code">NL</span>
           <span class="site-name">Homepage</span>
           <a href="https://www.samsung.com/nl/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -561,9 +588,10 @@
           <a href="screenshots/nl-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
         </div>
       </div>
-      <div class="card" data-country="nl">
+      <div class="card hidden" data-country="nl">
         <div class="card-header">
-          <span class="country-badge">🇳🇱 NL</span>
+          <span class="country-flag">🇳</span>
+          <span class="country-code">NL</span>
           <span class="site-name">Monitors</span>
           <a href="https://www.samsung.com/nl/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -584,9 +612,10 @@
           
         </div>
       </div>
-      <div class="card" data-country="no">
+      <div class="card hidden" data-country="no">
         <div class="card-header">
-          <span class="country-badge">🇳🇴 NO</span>
+          <span class="country-flag">🇳</span>
+          <span class="country-code">NO</span>
           <span class="site-name">Homepage</span>
           <a href="https://www.samsung.com/no/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -613,9 +642,10 @@
           <a href="screenshots/no-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
         </div>
       </div>
-      <div class="card" data-country="no">
+      <div class="card hidden" data-country="no">
         <div class="card-header">
-          <span class="country-badge">🇳🇴 NO</span>
+          <span class="country-flag">🇳</span>
+          <span class="country-code">NO</span>
           <span class="site-name">Monitors</span>
           <a href="https://www.samsung.com/no/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -636,9 +666,10 @@
           
         </div>
       </div>
-      <div class="card" data-country="pt">
+      <div class="card hidden" data-country="pt">
         <div class="card-header">
-          <span class="country-badge">🇵🇹 PT</span>
+          <span class="country-flag">🇵</span>
+          <span class="country-code">PT</span>
           <span class="site-name">Homepage</span>
           <a href="https://www.samsung.com/pt/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -665,9 +696,10 @@
           <a href="screenshots/pt-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
         </div>
       </div>
-      <div class="card" data-country="pt">
+      <div class="card hidden" data-country="pt">
         <div class="card-header">
-          <span class="country-badge">🇵🇹 PT</span>
+          <span class="country-flag">🇵</span>
+          <span class="country-code">PT</span>
           <span class="site-name">Monitors</span>
           <a href="https://www.samsung.com/pt/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -688,9 +720,10 @@
           
         </div>
       </div>
-      <div class="card" data-country="es">
+      <div class="card hidden" data-country="es">
         <div class="card-header">
-          <span class="country-badge">🇪🇸 ES</span>
+          <span class="country-flag">🇪</span>
+          <span class="country-code">ES</span>
           <span class="site-name">Homepage</span>
           <a href="https://www.samsung.com/es/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -717,9 +750,10 @@
           <a href="screenshots/es-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
         </div>
       </div>
-      <div class="card" data-country="es">
+      <div class="card hidden" data-country="es">
         <div class="card-header">
-          <span class="country-badge">🇪🇸 ES</span>
+          <span class="country-flag">🇪</span>
+          <span class="country-code">ES</span>
           <span class="site-name">Monitors</span>
           <a href="https://www.samsung.com/es/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -740,9 +774,10 @@
           
         </div>
       </div>
-      <div class="card" data-country="se">
+      <div class="card hidden" data-country="se">
         <div class="card-header">
-          <span class="country-badge">🇸🇪 SE</span>
+          <span class="country-flag">🇸</span>
+          <span class="country-code">SE</span>
           <span class="site-name">Homepage</span>
           <a href="https://www.samsung.com/se/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -769,9 +804,10 @@
           <a href="screenshots/se-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
         </div>
       </div>
-      <div class="card" data-country="se">
+      <div class="card hidden" data-country="se">
         <div class="card-header">
-          <span class="country-badge">🇸🇪 SE</span>
+          <span class="country-flag">🇸</span>
+          <span class="country-code">SE</span>
           <span class="site-name">Monitors</span>
           <a href="https://www.samsung.com/se/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -792,9 +828,10 @@
           
         </div>
       </div>
-      <div class="card" data-country="tr">
+      <div class="card hidden" data-country="tr">
         <div class="card-header">
-          <span class="country-badge">🇹🇷 TR</span>
+          <span class="country-flag">🇹</span>
+          <span class="country-code">TR</span>
           <span class="site-name">Homepage</span>
           <a href="https://www.samsung.com/tr/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -821,9 +858,10 @@
           <a href="screenshots/tr-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
         </div>
       </div>
-      <div class="card" data-country="tr">
+      <div class="card hidden" data-country="tr">
         <div class="card-header">
-          <span class="country-badge">🇹🇷 TR</span>
+          <span class="country-flag">🇹</span>
+          <span class="country-code">TR</span>
           <span class="site-name">Monitors</span>
           <a href="https://www.samsung.com/tr/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -844,9 +882,10 @@
           
         </div>
       </div>
-      <div class="card" data-country="uk">
+      <div class="card hidden" data-country="uk">
         <div class="card-header">
-          <span class="country-badge">🇬🇧 UK</span>
+          <span class="country-flag">🇬</span>
+          <span class="country-code">UK</span>
           <span class="site-name">Homepage</span>
           <a href="https://www.samsung.com/uk/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -873,9 +912,10 @@
           <a href="screenshots/uk-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
         </div>
       </div>
-      <div class="card" data-country="uk">
+      <div class="card hidden" data-country="uk">
         <div class="card-header">
-          <span class="country-badge">🇬🇧 UK</span>
+          <span class="country-flag">🇬</span>
+          <span class="country-code">UK</span>
           <span class="site-name">Monitors</span>
           <a href="https://www.samsung.com/uk/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -896,9 +936,10 @@
           
         </div>
       </div>
-      <div class="card" data-country="us">
+      <div class="card hidden" data-country="us">
         <div class="card-header">
-          <span class="country-badge">🇺🇸 US</span>
+          <span class="country-flag">🇺</span>
+          <span class="country-code">US</span>
           <span class="site-name">Homepage</span>
           <a href="https://www.samsung.com/us/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -925,9 +966,10 @@
           <a href="screenshots/us-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
         </div>
       </div>
-      <div class="card" data-country="us">
+      <div class="card hidden" data-country="us">
         <div class="card-header">
-          <span class="country-badge">🇺🇸 US</span>
+          <span class="country-flag">🇺</span>
+          <span class="country-code">US</span>
           <span class="site-name">Monitors</span>
           <a href="https://www.samsung.com/us/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
         </div>
@@ -950,7 +992,6 @@
       </div>
 </div>
 
-<!-- Modal -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
   <div class="modal">
     <button class="modal-close" onclick="closeModal()">✕</button>
@@ -962,26 +1003,19 @@
 
 <script>
 const config = {"countries":[{"code":"de","name":"🇩🇪 DE","gnbText":"Computers & Displays"},{"code":"au","name":"🇦🇺 AU","gnbText":"Monitors & Storage"},{"code":"be","name":"🇧🇪 BE","gnbText":"Computers & Monitors"},{"code":"be_fr","name":"🇧🇪 BE-FR","gnbText":"Computers & Monitors"},{"code":"fr","name":"🇫🇷 FR","gnbText":"Computers & Screens"},{"code":"it","name":"🇮🇹 IT","gnbText":"Computers and Displays"},{"code":"sec","name":"🇰🇷 KR","gnbText":"PC/주변기기"},{"code":"nl","name":"🇳🇱 NL","gnbText":"Computers & Monitors"},{"code":"no","name":"🇳🇴 NO","gnbText":"PCs & Monitors"},{"code":"pt","name":"🇵🇹 PT","gnbText":"Monitors & Storage"},{"code":"es","name":"🇪🇸 ES","gnbText":"Computing and Displays"},{"code":"se","name":"🇸🇪 SE","gnbText":"Computers & Monitors"},{"code":"tr","name":"🇹🇷 TR","gnbText":"Monitoring & Storage"},{"code":"uk","name":"🇬🇧 UK","gnbText":"Computers & Monitors"},{"code":"us","name":"🇺🇸 US","gnbText":"Computers & Monitors"}],"pages":[{"name":"Homepage","path":"/","id":"home","gnbHover":true},{"name":"Monitors","path":"/monitors/all-monitors/","id":"monitors","gnbHover":false}],"schedule":"0 9 * * *"};
-const dates = ["2026-06-22","2026-06-21","2026-06-20","2026-06-19","2026-06-18","2026-06-17","2026-06-16","2026-06-15","2026-06-14","2026-06-13","2026-06-12","2026-06-11","2026-06-10","2026-06-09","2026-06-08","2026-06-07","2026-06-06","2026-06-05","2026-06-04","2026-06-03","2026-06-02","2026-06-01","2026-05-31","2026-05-30","2026-05-29","2026-05-28","2026-05-27","2026-05-25","2026-05-24","2026-05-23","2026-05-22","2026-05-21","2026-05-20","2026-05-19","2026-05-18","2026-05-17","2026-05-16","2026-05-15","2026-05-14","2026-05-13","2026-05-12"];
+const dates = ["2026-06-22","2026-06-21","2026-06-20","2026-06-19","2026-06-18","2026-06-17","2026-06-16","2026-06-15","2026-06-14","2026-06-13","2026-06-12","2026-06-11","2026-06-10","2026-06-09","2026-06-08","2026-06-07","2026-06-06","2026-06-05","2026-06-04","2026-06-03","2026-06-02","2026-06-01","2026-05-31","2026-05-30","2026-05-29","2026-05-28","2026-05-27","2026-05-25","2026-05-24"];
 let currentDate = dates[0] || '';
-let currentCountry = 'all';
 
 function filterCountry(code, btn) {
-  currentCountry = code;
   document.querySelectorAll('.country-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.querySelectorAll('.card').forEach(card => {
-    if (code === 'all' || card.dataset.country === code) {
-      card.classList.remove('hidden');
-    } else {
-      card.classList.add('hidden');
-    }
+    card.classList.toggle('hidden', card.dataset.country !== code);
   });
 }
 
 function changeDate(date) {
   currentDate = date;
-  // 모든 카드 이미지 업데이트
   config.countries.forEach(country => {
     config.pages.forEach(page => {
       const siteId = country.code + '-' + page.id;
@@ -991,16 +1025,13 @@ function changeDate(date) {
         const gnbEl = document.querySelector('#' + siteId + '-gnb img');
         if (gnbEl) gnbEl.src = 'screenshots/' + siteId + '/' + date + '-gnb-hover.png';
       }
-      // 카드 footer 링크 업데이트
       const card = topEl ? topEl.closest('.card') : null;
       if (card) {
-        const badges = card.querySelectorAll('.badge');
-        badges.forEach(b => {
+        card.querySelectorAll('.badge').forEach(b => {
           if (b.href.includes('-full.png')) b.href = 'screenshots/' + siteId + '/' + date + '-full.png';
           if (b.href.includes('-top.png')) b.href = 'screenshots/' + siteId + '/' + date + '-top.png';
           if (b.href.includes('-gnb-hover.png')) b.href = 'screenshots/' + siteId + '/' + date + '-gnb-hover.png';
         });
-        // img-label 업데이트
         card.querySelectorAll('.img-label').forEach(lbl => {
           lbl.textContent = lbl.textContent.replace(/\d{4}-\d{2}-\d{2}/, date);
         });
