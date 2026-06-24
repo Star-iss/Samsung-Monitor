@@ -17,35 +17,35 @@
   header .meta { font-size: 0.82rem; opacity: 0.8; }
 
   .toolbar {
-    background: white; padding: 14px 32px;
+    background: white; padding: 12px 32px;
     border-bottom: 1px solid #e0e0e0;
-    display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+    display: flex; gap: 16px; align-items: center;
   }
   .toolbar label { font-size: 0.85rem; color: #555; font-weight: 600; }
-  .toolbar select {
-    padding: 6px 12px; border: 1px solid #ccc;
-    border-radius: 6px; font-size: 0.85rem; cursor: pointer;
-  }
+  .toolbar select { padding: 6px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.85rem; cursor: pointer; }
+  .toolbar .right { margin-left: auto; font-size: 0.82rem; color: #888; }
 
+  /* 국가 슬라이서 */
   .country-slicer {
-    background: white; padding: 10px 32px;
-    border-bottom: 1px solid #e0e0e0;
-    display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+    background: white; padding: 0 32px;
+    border-bottom: 2px solid #e0e0e0;
+    display: flex; gap: 0; align-items: stretch; overflow-x: auto;
   }
-  .slicer-label { font-size: 0.82rem; color: #555; font-weight: 600; margin-right: 4px; }
   .country-btn {
-    padding: 5px 12px; border: 1.5px solid #ddd;
-    border-radius: 20px; background: white;
-    font-size: 0.82rem; cursor: pointer; color: #444;
-    transition: all 0.15s; display: flex; align-items: center; gap: 5px;
+    padding: 10px 16px; border: none; border-bottom: 3px solid transparent;
+    background: none; cursor: pointer; color: #666;
+    transition: all 0.15s; display: flex; align-items: center; gap: 6px;
+    white-space: nowrap; font-size: 0.83rem;
   }
-  .country-btn:hover { border-color: #1428A0; color: #1428A0; }
-  .country-btn.active { background: #1428A0; color: white; border-color: #1428A0; font-weight: 600; }
-  .country-btn .flag { font-size: 1rem; line-height: 1; }
+  .country-btn:hover { color: #1428A0; background: #f5f7ff; }
+  .country-btn.active { color: #1428A0; border-bottom-color: #1428A0; font-weight: 700; background: #f0f3ff; }
+  .country-btn .flag { font-size: 1.3rem; line-height: 1; }
+  .country-btn .code { font-size: 0.78rem; font-weight: 600; }
 
+  /* 그리드 */
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
     gap: 20px; padding: 24px 32px;
     max-width: 1600px; margin: 0 auto;
   }
@@ -53,17 +53,20 @@
   .card {
     background: white; border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-    overflow: hidden; transition: transform 0.15s;
+    overflow: hidden; transition: transform 0.15s, box-shadow 0.15s;
   }
-  .card:hover { transform: translateY(-2px); }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.11); }
   .card.hidden { display: none; }
 
-  .card-header { padding: 14px 18px 10px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 8px; }
-  .country-flag { font-size: 1.2rem; }
-  .country-code { background: #e8eaf6; color: #1428A0; font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
-  .site-name { font-weight: 700; font-size: 0.95rem; color: #222; }
-  .site-url { font-size: 0.75rem; color: #aaa; margin-left: auto; text-decoration: none; }
-  .site-url:hover { color: #1428A0; }
+  .card-header {
+    padding: 14px 18px 10px; border-bottom: 1px solid #f0f0f0;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-flag { font-size: 1.5rem; line-height: 1; }
+  .card-country { background: #1428A0; color: white; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
+  .card-title { font-weight: 700; font-size: 0.95rem; color: #222; }
+  .card-link { font-size: 0.75rem; color: #aaa; margin-left: auto; text-decoration: none; }
+  .card-link:hover { color: #1428A0; }
 
   .tab-bar { display: flex; border-bottom: 1px solid #eee; background: #fafafa; }
   .tab {
@@ -96,6 +99,7 @@
   }
   .badge:hover { background: #1428A0; color: white; }
 
+  /* Modal */
   .modal-overlay {
     display: none; position: fixed; inset: 0;
     background: rgba(0,0,0,0.75); z-index: 100;
@@ -123,6 +127,9 @@
     display: inline-block; margin-top: 10px; background: #1428A0; color: white;
     padding: 7px 16px; border-radius: 8px; font-size: 0.82rem; text-decoration: none;
   }
+
+  ::-webkit-scrollbar { height: 4px; }
+  ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
 </style>
 </head>
 <body>
@@ -138,43 +145,57 @@
 <div class="toolbar">
   <label>📅 날짜:</label>
   <select id="dateSelect" onchange="changeDate(this.value)">
-    <option value="2026-06-22">2026-06-22</option><option value="2026-06-21">2026-06-21</option><option value="2026-06-20">2026-06-20</option><option value="2026-06-19">2026-06-19</option><option value="2026-06-18">2026-06-18</option><option value="2026-06-17">2026-06-17</option><option value="2026-06-16">2026-06-16</option><option value="2026-06-15">2026-06-15</option><option value="2026-06-14">2026-06-14</option><option value="2026-06-13">2026-06-13</option><option value="2026-06-12">2026-06-12</option><option value="2026-06-11">2026-06-11</option><option value="2026-06-10">2026-06-10</option><option value="2026-06-09">2026-06-09</option><option value="2026-06-08">2026-06-08</option><option value="2026-06-07">2026-06-07</option><option value="2026-06-06">2026-06-06</option><option value="2026-06-05">2026-06-05</option><option value="2026-06-04">2026-06-04</option><option value="2026-06-03">2026-06-03</option><option value="2026-06-02">2026-06-02</option><option value="2026-06-01">2026-06-01</option><option value="2026-05-31">2026-05-31</option><option value="2026-05-30">2026-05-30</option><option value="2026-05-29">2026-05-29</option><option value="2026-05-28">2026-05-28</option><option value="2026-05-27">2026-05-27</option><option value="2026-05-25">2026-05-25</option><option value="2026-05-24">2026-05-24</option>
+    <option value="2026-06-22">2026-06-22</option><option value="2026-06-21">2026-06-21</option><option value="2026-06-20">2026-06-20</option><option value="2026-06-19">2026-06-19</option><option value="2026-06-18">2026-06-18</option><option value="2026-06-17">2026-06-17</option><option value="2026-06-16">2026-06-16</option><option value="2026-06-15">2026-06-15</option><option value="2026-06-14">2026-06-14</option><option value="2026-06-13">2026-06-13</option><option value="2026-06-12">2026-06-12</option><option value="2026-06-11">2026-06-11</option><option value="2026-06-10">2026-06-10</option><option value="2026-06-09">2026-06-09</option><option value="2026-06-08">2026-06-08</option><option value="2026-06-07">2026-06-07</option><option value="2026-06-06">2026-06-06</option><option value="2026-06-05">2026-06-05</option><option value="2026-06-04">2026-06-04</option><option value="2026-06-03">2026-06-03</option><option value="2026-06-02">2026-06-02</option><option value="2026-06-01">2026-06-01</option><option value="2026-05-31">2026-05-31</option><option value="2026-05-30">2026-05-30</option><option value="2026-05-29">2026-05-29</option><option value="2026-05-28">2026-05-28</option><option value="2026-05-27">2026-05-27</option><option value="2026-05-25">2026-05-25</option>
   </select>
-  <span style="margin-left:auto;font-size:0.82rem;color:#888;">총 15개 국가 × 2개 페이지</span>
+  <span class="right">총 15개 국가 × 2개 페이지</span>
 </div>
 
 <div class="country-slicer">
-  <span class="slicer-label">🌍 국가:</span>
   <button class="country-btn active" data-country="de" onclick="filterCountry('de', this)">
-      <span class="flag">🇩</span>DE
+      <span class="flag">🇩🇪</span>
+      <span class="code">DE</span>
     </button><button class="country-btn" data-country="au" onclick="filterCountry('au', this)">
-      <span class="flag">🇦</span>AU
+      <span class="flag">🇦🇺</span>
+      <span class="code">AU</span>
     </button><button class="country-btn" data-country="be" onclick="filterCountry('be', this)">
-      <span class="flag">🇧</span>BE
+      <span class="flag">🇧🇪</span>
+      <span class="code">BE</span>
     </button><button class="country-btn" data-country="be_fr" onclick="filterCountry('be_fr', this)">
-      <span class="flag">🇧</span>BE-FR
+      <span class="flag">🇧🇪</span>
+      <span class="code">BE-FR</span>
     </button><button class="country-btn" data-country="fr" onclick="filterCountry('fr', this)">
-      <span class="flag">🇫</span>FR
+      <span class="flag">🇫🇷</span>
+      <span class="code">FR</span>
     </button><button class="country-btn" data-country="it" onclick="filterCountry('it', this)">
-      <span class="flag">🇮</span>IT
+      <span class="flag">🇮🇹</span>
+      <span class="code">IT</span>
     </button><button class="country-btn" data-country="sec" onclick="filterCountry('sec', this)">
-      <span class="flag">🇰</span>KR
+      <span class="flag">🇰🇷</span>
+      <span class="code">KR</span>
     </button><button class="country-btn" data-country="nl" onclick="filterCountry('nl', this)">
-      <span class="flag">🇳</span>NL
+      <span class="flag">🇳🇱</span>
+      <span class="code">NL</span>
     </button><button class="country-btn" data-country="no" onclick="filterCountry('no', this)">
-      <span class="flag">🇳</span>NO
+      <span class="flag">🇳🇴</span>
+      <span class="code">NO</span>
     </button><button class="country-btn" data-country="pt" onclick="filterCountry('pt', this)">
-      <span class="flag">🇵</span>PT
+      <span class="flag">🇵🇹</span>
+      <span class="code">PT</span>
     </button><button class="country-btn" data-country="es" onclick="filterCountry('es', this)">
-      <span class="flag">🇪</span>ES
+      <span class="flag">🇪🇸</span>
+      <span class="code">ES</span>
     </button><button class="country-btn" data-country="se" onclick="filterCountry('se', this)">
-      <span class="flag">🇸</span>SE
+      <span class="flag">🇸🇪</span>
+      <span class="code">SE</span>
     </button><button class="country-btn" data-country="tr" onclick="filterCountry('tr', this)">
-      <span class="flag">🇹</span>TR
+      <span class="flag">🇹🇷</span>
+      <span class="code">TR</span>
     </button><button class="country-btn" data-country="uk" onclick="filterCountry('uk', this)">
-      <span class="flag">🇬</span>UK
+      <span class="flag">🇬🇧</span>
+      <span class="code">UK</span>
     </button><button class="country-btn" data-country="us" onclick="filterCountry('us', this)">
-      <span class="flag">🇺</span>US
+      <span class="flag">🇺🇸</span>
+      <span class="code">US</span>
     </button>
 </div>
 
@@ -182,10 +203,10 @@
   
       <div class="card" data-country="de">
         <div class="card-header">
-          <span class="country-flag">🇩</span>
-          <span class="country-code">DE</span>
-          <span class="site-name">Homepage</span>
-          <a href="https://www.samsung.com/de/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇩🇪</span>
+          <span class="card-country">DE</span>
+          <span class="card-title">Homepage</span>
+          <a href="https://www.samsung.com/de/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'de-home', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'de-home', 'gnb')">📂 GNB Hover</button></div>
 
@@ -212,10 +233,10 @@
       </div>
       <div class="card" data-country="de">
         <div class="card-header">
-          <span class="country-flag">🇩</span>
-          <span class="country-code">DE</span>
-          <span class="site-name">Monitors</span>
-          <a href="https://www.samsung.com/de/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇩🇪</span>
+          <span class="card-country">DE</span>
+          <span class="card-title">Monitors</span>
+          <a href="https://www.samsung.com/de/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'de-monitors', 'top')">🖥️ 상단 뷰</button></div>
 
@@ -236,10 +257,10 @@
       </div>
       <div class="card hidden" data-country="au">
         <div class="card-header">
-          <span class="country-flag">🇦</span>
-          <span class="country-code">AU</span>
-          <span class="site-name">Homepage</span>
-          <a href="https://www.samsung.com/au/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇦🇺</span>
+          <span class="card-country">AU</span>
+          <span class="card-title">Homepage</span>
+          <a href="https://www.samsung.com/au/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'au-home', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'au-home', 'gnb')">📂 GNB Hover</button></div>
 
@@ -266,10 +287,10 @@
       </div>
       <div class="card hidden" data-country="au">
         <div class="card-header">
-          <span class="country-flag">🇦</span>
-          <span class="country-code">AU</span>
-          <span class="site-name">Monitors</span>
-          <a href="https://www.samsung.com/au/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇦🇺</span>
+          <span class="card-country">AU</span>
+          <span class="card-title">Monitors</span>
+          <a href="https://www.samsung.com/au/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'au-monitors', 'top')">🖥️ 상단 뷰</button></div>
 
@@ -290,10 +311,10 @@
       </div>
       <div class="card hidden" data-country="be">
         <div class="card-header">
-          <span class="country-flag">🇧</span>
-          <span class="country-code">BE</span>
-          <span class="site-name">Homepage</span>
-          <a href="https://www.samsung.com/be/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇧🇪</span>
+          <span class="card-country">BE</span>
+          <span class="card-title">Homepage</span>
+          <a href="https://www.samsung.com/be/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'be-home', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'be-home', 'gnb')">📂 GNB Hover</button></div>
 
@@ -320,10 +341,10 @@
       </div>
       <div class="card hidden" data-country="be">
         <div class="card-header">
-          <span class="country-flag">🇧</span>
-          <span class="country-code">BE</span>
-          <span class="site-name">Monitors</span>
-          <a href="https://www.samsung.com/be/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇧🇪</span>
+          <span class="card-country">BE</span>
+          <span class="card-title">Monitors</span>
+          <a href="https://www.samsung.com/be/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'be-monitors', 'top')">🖥️ 상단 뷰</button></div>
 
@@ -344,10 +365,10 @@
       </div>
       <div class="card hidden" data-country="be_fr">
         <div class="card-header">
-          <span class="country-flag">🇧</span>
-          <span class="country-code">BE-FR</span>
-          <span class="site-name">Homepage</span>
-          <a href="https://www.samsung.com/be_fr/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇧🇪</span>
+          <span class="card-country">BE-FR</span>
+          <span class="card-title">Homepage</span>
+          <a href="https://www.samsung.com/be_fr/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'be_fr-home', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'be_fr-home', 'gnb')">📂 GNB Hover</button></div>
 
@@ -374,10 +395,10 @@
       </div>
       <div class="card hidden" data-country="be_fr">
         <div class="card-header">
-          <span class="country-flag">🇧</span>
-          <span class="country-code">BE-FR</span>
-          <span class="site-name">Monitors</span>
-          <a href="https://www.samsung.com/be_fr/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇧🇪</span>
+          <span class="card-country">BE-FR</span>
+          <span class="card-title">Monitors</span>
+          <a href="https://www.samsung.com/be_fr/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'be_fr-monitors', 'top')">🖥️ 상단 뷰</button></div>
 
@@ -398,10 +419,10 @@
       </div>
       <div class="card hidden" data-country="fr">
         <div class="card-header">
-          <span class="country-flag">🇫</span>
-          <span class="country-code">FR</span>
-          <span class="site-name">Homepage</span>
-          <a href="https://www.samsung.com/fr/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇫🇷</span>
+          <span class="card-country">FR</span>
+          <span class="card-title">Homepage</span>
+          <a href="https://www.samsung.com/fr/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'fr-home', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'fr-home', 'gnb')">📂 GNB Hover</button></div>
 
@@ -428,10 +449,10 @@
       </div>
       <div class="card hidden" data-country="fr">
         <div class="card-header">
-          <span class="country-flag">🇫</span>
-          <span class="country-code">FR</span>
-          <span class="site-name">Monitors</span>
-          <a href="https://www.samsung.com/fr/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇫🇷</span>
+          <span class="card-country">FR</span>
+          <span class="card-title">Monitors</span>
+          <a href="https://www.samsung.com/fr/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'fr-monitors', 'top')">🖥️ 상단 뷰</button></div>
 
@@ -452,10 +473,10 @@
       </div>
       <div class="card hidden" data-country="it">
         <div class="card-header">
-          <span class="country-flag">🇮</span>
-          <span class="country-code">IT</span>
-          <span class="site-name">Homepage</span>
-          <a href="https://www.samsung.com/it/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇮🇹</span>
+          <span class="card-country">IT</span>
+          <span class="card-title">Homepage</span>
+          <a href="https://www.samsung.com/it/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'it-home', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'it-home', 'gnb')">📂 GNB Hover</button></div>
 
@@ -482,10 +503,10 @@
       </div>
       <div class="card hidden" data-country="it">
         <div class="card-header">
-          <span class="country-flag">🇮</span>
-          <span class="country-code">IT</span>
-          <span class="site-name">Monitors</span>
-          <a href="https://www.samsung.com/it/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇮🇹</span>
+          <span class="card-country">IT</span>
+          <span class="card-title">Monitors</span>
+          <a href="https://www.samsung.com/it/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'it-monitors', 'top')">🖥️ 상단 뷰</button></div>
 
@@ -506,10 +527,10 @@
       </div>
       <div class="card hidden" data-country="sec">
         <div class="card-header">
-          <span class="country-flag">🇰</span>
-          <span class="country-code">KR</span>
-          <span class="site-name">Homepage</span>
-          <a href="https://www.samsung.com/sec/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇰🇷</span>
+          <span class="card-country">KR</span>
+          <span class="card-title">Homepage</span>
+          <a href="https://www.samsung.com/sec/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'sec-home', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'sec-home', 'gnb')">📂 GNB Hover</button></div>
 
@@ -536,10 +557,10 @@
       </div>
       <div class="card hidden" data-country="sec">
         <div class="card-header">
-          <span class="country-flag">🇰</span>
-          <span class="country-code">KR</span>
-          <span class="site-name">Monitors</span>
-          <a href="https://www.samsung.com/sec/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇰🇷</span>
+          <span class="card-country">KR</span>
+          <span class="card-title">Monitors</span>
+          <a href="https://www.samsung.com/sec/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'sec-monitors', 'top')">🖥️ 상단 뷰</button></div>
 
@@ -560,10 +581,10 @@
       </div>
       <div class="card hidden" data-country="nl">
         <div class="card-header">
-          <span class="country-flag">🇳</span>
-          <span class="country-code">NL</span>
-          <span class="site-name">Homepage</span>
-          <a href="https://www.samsung.com/nl/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇳🇱</span>
+          <span class="card-country">NL</span>
+          <span class="card-title">Homepage</span>
+          <a href="https://www.samsung.com/nl/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'nl-home', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'nl-home', 'gnb')">📂 GNB Hover</button></div>
 
@@ -590,10 +611,10 @@
       </div>
       <div class="card hidden" data-country="nl">
         <div class="card-header">
-          <span class="country-flag">🇳</span>
-          <span class="country-code">NL</span>
-          <span class="site-name">Monitors</span>
-          <a href="https://www.samsung.com/nl/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇳🇱</span>
+          <span class="card-country">NL</span>
+          <span class="card-title">Monitors</span>
+          <a href="https://www.samsung.com/nl/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'nl-monitors', 'top')">🖥️ 상단 뷰</button></div>
 
@@ -614,10 +635,10 @@
       </div>
       <div class="card hidden" data-country="no">
         <div class="card-header">
-          <span class="country-flag">🇳</span>
-          <span class="country-code">NO</span>
-          <span class="site-name">Homepage</span>
-          <a href="https://www.samsung.com/no/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇳🇴</span>
+          <span class="card-country">NO</span>
+          <span class="card-title">Homepage</span>
+          <a href="https://www.samsung.com/no/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'no-home', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'no-home', 'gnb')">📂 GNB Hover</button></div>
 
@@ -644,10 +665,10 @@
       </div>
       <div class="card hidden" data-country="no">
         <div class="card-header">
-          <span class="country-flag">🇳</span>
-          <span class="country-code">NO</span>
-          <span class="site-name">Monitors</span>
-          <a href="https://www.samsung.com/no/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇳🇴</span>
+          <span class="card-country">NO</span>
+          <span class="card-title">Monitors</span>
+          <a href="https://www.samsung.com/no/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'no-monitors', 'top')">🖥️ 상단 뷰</button></div>
 
@@ -668,10 +689,10 @@
       </div>
       <div class="card hidden" data-country="pt">
         <div class="card-header">
-          <span class="country-flag">🇵</span>
-          <span class="country-code">PT</span>
-          <span class="site-name">Homepage</span>
-          <a href="https://www.samsung.com/pt/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇵🇹</span>
+          <span class="card-country">PT</span>
+          <span class="card-title">Homepage</span>
+          <a href="https://www.samsung.com/pt/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'pt-home', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'pt-home', 'gnb')">📂 GNB Hover</button></div>
 
@@ -698,10 +719,10 @@
       </div>
       <div class="card hidden" data-country="pt">
         <div class="card-header">
-          <span class="country-flag">🇵</span>
-          <span class="country-code">PT</span>
-          <span class="site-name">Monitors</span>
-          <a href="https://www.samsung.com/pt/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇵🇹</span>
+          <span class="card-country">PT</span>
+          <span class="card-title">Monitors</span>
+          <a href="https://www.samsung.com/pt/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'pt-monitors', 'top')">🖥️ 상단 뷰</button></div>
 
@@ -722,10 +743,10 @@
       </div>
       <div class="card hidden" data-country="es">
         <div class="card-header">
-          <span class="country-flag">🇪</span>
-          <span class="country-code">ES</span>
-          <span class="site-name">Homepage</span>
-          <a href="https://www.samsung.com/es/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇪🇸</span>
+          <span class="card-country">ES</span>
+          <span class="card-title">Homepage</span>
+          <a href="https://www.samsung.com/es/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'es-home', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'es-home', 'gnb')">📂 GNB Hover</button></div>
 
@@ -752,10 +773,10 @@
       </div>
       <div class="card hidden" data-country="es">
         <div class="card-header">
-          <span class="country-flag">🇪</span>
-          <span class="country-code">ES</span>
-          <span class="site-name">Monitors</span>
-          <a href="https://www.samsung.com/es/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇪🇸</span>
+          <span class="card-country">ES</span>
+          <span class="card-title">Monitors</span>
+          <a href="https://www.samsung.com/es/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'es-monitors', 'top')">🖥️ 상단 뷰</button></div>
 
@@ -776,10 +797,10 @@
       </div>
       <div class="card hidden" data-country="se">
         <div class="card-header">
-          <span class="country-flag">🇸</span>
-          <span class="country-code">SE</span>
-          <span class="site-name">Homepage</span>
-          <a href="https://www.samsung.com/se/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇸🇪</span>
+          <span class="card-country">SE</span>
+          <span class="card-title">Homepage</span>
+          <a href="https://www.samsung.com/se/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'se-home', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'se-home', 'gnb')">📂 GNB Hover</button></div>
 
@@ -806,10 +827,10 @@
       </div>
       <div class="card hidden" data-country="se">
         <div class="card-header">
-          <span class="country-flag">🇸</span>
-          <span class="country-code">SE</span>
-          <span class="site-name">Monitors</span>
-          <a href="https://www.samsung.com/se/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇸🇪</span>
+          <span class="card-country">SE</span>
+          <span class="card-title">Monitors</span>
+          <a href="https://www.samsung.com/se/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'se-monitors', 'top')">🖥️ 상단 뷰</button></div>
 
@@ -830,10 +851,10 @@
       </div>
       <div class="card hidden" data-country="tr">
         <div class="card-header">
-          <span class="country-flag">🇹</span>
-          <span class="country-code">TR</span>
-          <span class="site-name">Homepage</span>
-          <a href="https://www.samsung.com/tr/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇹🇷</span>
+          <span class="card-country">TR</span>
+          <span class="card-title">Homepage</span>
+          <a href="https://www.samsung.com/tr/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'tr-home', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'tr-home', 'gnb')">📂 GNB Hover</button></div>
 
@@ -860,10 +881,10 @@
       </div>
       <div class="card hidden" data-country="tr">
         <div class="card-header">
-          <span class="country-flag">🇹</span>
-          <span class="country-code">TR</span>
-          <span class="site-name">Monitors</span>
-          <a href="https://www.samsung.com/tr/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇹🇷</span>
+          <span class="card-country">TR</span>
+          <span class="card-title">Monitors</span>
+          <a href="https://www.samsung.com/tr/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'tr-monitors', 'top')">🖥️ 상단 뷰</button></div>
 
@@ -884,10 +905,10 @@
       </div>
       <div class="card hidden" data-country="uk">
         <div class="card-header">
-          <span class="country-flag">🇬</span>
-          <span class="country-code">UK</span>
-          <span class="site-name">Homepage</span>
-          <a href="https://www.samsung.com/uk/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇬🇧</span>
+          <span class="card-country">UK</span>
+          <span class="card-title">Homepage</span>
+          <a href="https://www.samsung.com/uk/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'uk-home', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'uk-home', 'gnb')">📂 GNB Hover</button></div>
 
@@ -914,10 +935,10 @@
       </div>
       <div class="card hidden" data-country="uk">
         <div class="card-header">
-          <span class="country-flag">🇬</span>
-          <span class="country-code">UK</span>
-          <span class="site-name">Monitors</span>
-          <a href="https://www.samsung.com/uk/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇬🇧</span>
+          <span class="card-country">UK</span>
+          <span class="card-title">Monitors</span>
+          <a href="https://www.samsung.com/uk/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'uk-monitors', 'top')">🖥️ 상단 뷰</button></div>
 
@@ -938,10 +959,10 @@
       </div>
       <div class="card hidden" data-country="us">
         <div class="card-header">
-          <span class="country-flag">🇺</span>
-          <span class="country-code">US</span>
-          <span class="site-name">Homepage</span>
-          <a href="https://www.samsung.com/us/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇺🇸</span>
+          <span class="card-country">US</span>
+          <span class="card-title">Homepage</span>
+          <a href="https://www.samsung.com/us/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'us-home', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'us-home', 'gnb')">📂 GNB Hover</button></div>
 
@@ -968,10 +989,10 @@
       </div>
       <div class="card hidden" data-country="us">
         <div class="card-header">
-          <span class="country-flag">🇺</span>
-          <span class="country-code">US</span>
-          <span class="site-name">Monitors</span>
-          <a href="https://www.samsung.com/us/monitors/all-monitors/" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">🇺🇸</span>
+          <span class="card-country">US</span>
+          <span class="card-title">Monitors</span>
+          <a href="https://www.samsung.com/us/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'us-monitors', 'top')">🖥️ 상단 뷰</button></div>
 
@@ -1002,8 +1023,8 @@
 </div>
 
 <script>
-const config = {"countries":[{"code":"de","name":"🇩🇪 DE","gnbText":"Computers & Displays"},{"code":"au","name":"🇦🇺 AU","gnbText":"Monitors & Storage"},{"code":"be","name":"🇧🇪 BE","gnbText":"Computers & Monitors"},{"code":"be_fr","name":"🇧🇪 BE-FR","gnbText":"Computers & Monitors"},{"code":"fr","name":"🇫🇷 FR","gnbText":"Computers & Screens"},{"code":"it","name":"🇮🇹 IT","gnbText":"Computers and Displays"},{"code":"sec","name":"🇰🇷 KR","gnbText":"PC/주변기기"},{"code":"nl","name":"🇳🇱 NL","gnbText":"Computers & Monitors"},{"code":"no","name":"🇳🇴 NO","gnbText":"PCs & Monitors"},{"code":"pt","name":"🇵🇹 PT","gnbText":"Monitors & Storage"},{"code":"es","name":"🇪🇸 ES","gnbText":"Computing and Displays"},{"code":"se","name":"🇸🇪 SE","gnbText":"Computers & Monitors"},{"code":"tr","name":"🇹🇷 TR","gnbText":"Monitoring & Storage"},{"code":"uk","name":"🇬🇧 UK","gnbText":"Computers & Monitors"},{"code":"us","name":"🇺🇸 US","gnbText":"Computers & Monitors"}],"pages":[{"name":"Homepage","path":"/","id":"home","gnbHover":true},{"name":"Monitors","path":"/monitors/all-monitors/","id":"monitors","gnbHover":false}],"schedule":"0 9 * * *"};
-const dates = ["2026-06-22","2026-06-21","2026-06-20","2026-06-19","2026-06-18","2026-06-17","2026-06-16","2026-06-15","2026-06-14","2026-06-13","2026-06-12","2026-06-11","2026-06-10","2026-06-09","2026-06-08","2026-06-07","2026-06-06","2026-06-05","2026-06-04","2026-06-03","2026-06-02","2026-06-01","2026-05-31","2026-05-30","2026-05-29","2026-05-28","2026-05-27","2026-05-25","2026-05-24"];
+const config = {"countries":[{"code":"de","name":"🇩🇪 DE","gnbText":"Computers & Displays"},{"code":"au","name":"🇦🇺 AU","gnbText":"Monitors & Storage"},{"code":"be","name":"🇧🇪 BE","gnbText":"Computers & Monitors"},{"code":"be_fr","name":"🇧🇪 BE-FR","gnbText":"Computers & Monitors"},{"code":"fr","name":"🇫🇷 FR","gnbText":"Computers & Screens"},{"code":"it","name":"🇮🇹 IT","gnbText":"Computers and Displays"},{"code":"sec","name":"🇰🇷 KR","gnbText":"PC/주변기기"},{"code":"nl","name":"🇳🇱 NL","gnbText":"Computers & Monitors"},{"code":"no","name":"🇳🇴 NO","gnbText":"PCs & Monitors"},{"code":"pt","name":"🇵🇹 PT","gnbText":"Monitors & Storage"},{"code":"es","name":"🇪🇸 ES","gnbText":"Computing and Displays"},{"code":"se","name":"🇸🇪 SE","gnbText":"Computers & Monitors"},{"code":"tr","name":"🇹🇷 TR","gnbText":"Monitoring & Storage"},{"code":"uk","name":"🇬🇧 UK","gnbText":"Computers & Monitors"},{"code":"us","name":"🇺🇸 US","gnbText":"Computers & Monitors"}],"pages":[{"name":"Homepage","path":"/","id":"home","gnbHover":true},{"name":"Monitors","path":"/monitors/all-monitors/","id":"monitors","gnbHover":false}],"schedule":"0 9 * * *","flagMap":{"de":"🇩🇪","au":"🇦🇺","be":"🇧🇪","be_fr":"🇧🇪","fr":"🇫🇷","it":"🇮🇹","sec":"🇰🇷","nl":"🇳🇱","no":"🇳🇴","pt":"🇵🇹","es":"🇪🇸","se":"🇸🇪","tr":"🇹🇷","uk":"🇬🇧","us":"🇺🇸"},"labelMap":{"de":"DE","au":"AU","be":"BE","be_fr":"BE-FR","fr":"FR","it":"IT","sec":"KR","nl":"NL","no":"NO","pt":"PT","es":"ES","se":"SE","tr":"TR","uk":"UK","us":"US"}};
+const dates = ["2026-06-22","2026-06-21","2026-06-20","2026-06-19","2026-06-18","2026-06-17","2026-06-16","2026-06-15","2026-06-14","2026-06-13","2026-06-12","2026-06-11","2026-06-10","2026-06-09","2026-06-08","2026-06-07","2026-06-06","2026-06-05","2026-06-04","2026-06-03","2026-06-02","2026-06-01","2026-05-31","2026-05-30","2026-05-29","2026-05-28","2026-05-27","2026-05-25"];
 let currentDate = dates[0] || '';
 
 function filterCountry(code, btn) {
@@ -1033,7 +1054,7 @@ function changeDate(date) {
           if (b.href.includes('-gnb-hover.png')) b.href = 'screenshots/' + siteId + '/' + date + '-gnb-hover.png';
         });
         card.querySelectorAll('.img-label').forEach(lbl => {
-          lbl.textContent = lbl.textContent.replace(/\d{4}-\d{2}-\d{2}/, date);
+          lbl.textContent = lbl.textContent.replace(/d{4}-d{2}-d{2}/, date);
         });
       }
     });
@@ -1053,8 +1074,10 @@ function openModal(siteId, type) {
   const pageId = parts.slice(1).join('-');
   const country = config.countries.find(c => c.code === countryCode);
   const page = config.pages.find(p => p.id === pageId);
+  const flag = config.flagMap[countryCode] || '';
+  const label = config.labelMap[countryCode] || countryCode;
 
-  document.getElementById('modalTitle').textContent = (country ? country.name : countryCode) + ' · ' + (page ? page.name : pageId);
+  document.getElementById('modalTitle').textContent = flag + ' ' + label + ' · ' + (page ? page.name : pageId);
 
   const types = [
     { key: 'top', label: '🖥️ 상단 뷰' },
