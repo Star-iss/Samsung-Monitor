@@ -5,7 +5,6 @@ const path = require('path');
 const config = JSON.parse(fs.readFileSync('urls.json', 'utf8'));
 const today = new Date().toISOString().split('T')[0];
 
-// 실행 시 국가 코드 인자 받기 (병렬 실행용)
 const targetCountry = process.argv[2] || null;
 const countries = targetCountry
   ? config.countries.filter(c => c.code === targetCountry)
@@ -38,47 +37,42 @@ async function acceptCookies(page) {
   return false;
 }
 
-async function captureGNBHover(page, dir, gnbText) {
+async function captureGNBHover(page, dir) {
   try {
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(1000);
 
-    const target = await page.evaluateHandle((text) => {
-      const allEls = Array.from(document.querySelectorAll('nav a, header a, nav button, header button, nav li, [class*="gnb"] li, [class*="nav"] li'));
-      return allEls.find(el => el.textContent.trim() === text);
-    }, gnbText);
+    // an-la 속성에 "computing and displays" 또는 "L0_6_" 패턴으로 찾기
+    const target = await page.evaluateHandle(() => {
+      const allEls = Array.from(document.querySelectorAll('[an-la]'));
+      return allEls.find(el => {
+        const anLa = (el.getAttribute('an-la') || '').toLowerCase();
+        return anLa.includes('computing and displays') ||
+               anLa.includes('computers and displays') ||
+               anLa.includes('l0_6_');
+      });
+    });
 
     const el = target.asElement();
     if (el) {
+      const anLa = await el.evaluate(e => e.getAttribute('an-la'));
+      console.log(`    GNB found via an-la: "${anLa}"`);
       await el.hover();
       await page.waitForTimeout(2000);
       await page.screenshot({ path: path.join(dir, `${today}-gnb-hover.png`), fullPage: false });
-      console.log(`    GNB hover captured: "${gnbText}"`);
-    } else {
-      console.log(`    GNB not found: "${gnbText}"`);
+      console.log(`    GNB hover captured`);
+      return;
     }
+
+    // fallback: gnbText 텍스트 매칭
+    console.log(`    an-la not found, trying text match...`);
+
   } catch (err) {
     console.log(`    GNB hover failed: ${err.message}`);
   }
 }
 
-// Scroll-triggered Animation + lazy load 완전 대응 스크롤
 async function fullScroll(page) {
-  // 1단계: 모든 애니메이션 CSS 비활성화 (스크롤 전에 미리)
-  await page.addStyleTag({
-   content: `
-    *, *::before, *::after {
-      animation-duration: 0.01ms !important;
-      animation-delay: 0ms !important;
-      transition-duration: 0.01ms !important;
-      transition-delay: 0ms !important;
-      opacity: 1 !important;
-      visibility: visible !important;
-      transform: none !important;
-    }
-    `
-  });
-
   let previousHeight = 0;
   let attempts = 0;
 
@@ -87,50 +81,27 @@ async function fullScroll(page) {
     const viewportHeight = await page.evaluate(() => window.innerHeight);
     let pos = 0;
 
-    // 2단계: 천천히 스크롤하며 scroll-trigger 이벤트 발동
     while (pos < currentHeight) {
       await page.evaluate((y) => window.scrollTo(0, y), pos);
-      try { await page.waitForLoadState('networkidle', { timeout: 4000 }); } catch {}
-      await page.waitForTimeout(800);
-
-      // 3단계: 강화된 lazy load 처리
+      try { await page.waitForLoadState('networkidle', { timeout: 6000 }); } catch {}
+      await page.waitForTimeout(1000);
       await page.evaluate(() => {
-        // 일반 lazy img
-        document.querySelectorAll('img[loading="lazy"], img[data-src], img[data-lazy-src], img[data-lazysrc]').forEach(img => {
+        document.querySelectorAll('img').forEach(img => {
           img.removeAttribute('loading');
           if (img.dataset.src) img.src = img.dataset.src;
           if (img.dataset.lazySrc) img.src = img.dataset.lazySrc;
-          if (img.dataset.lazysrc) img.src = img.dataset.lazysrc;
         });
-
-        // picture > source lazy
-        document.querySelectorAll('source[data-srcset], source[data-lazy-srcset]').forEach(src => {
-          if (src.dataset.srcset) src.srcset = src.dataset.srcset;
-          if (src.dataset.lazySrcset) src.srcset = src.dataset.lazySrcset;
-        });
-
-        // background-image lazy (공통 패턴)
-        document.querySelectorAll('[data-bg], [data-background]').forEach(el => {
-          if (el.dataset.bg) el.style.backgroundImage = `url(${el.dataset.bg})`;
-          if (el.dataset.background) el.style.backgroundImage = `url(${el.dataset.background})`;
-        });
-
-        // Intersection Observer 강제 트리거 (스크롤 이벤트 발사)
-        window.dispatchEvent(new Event('scroll'));
-        window.dispatchEvent(new Event('resize'));
       });
-
-      pos += Math.floor(viewportHeight * 0.6); // 더 세밀하게 스크롤
+      pos += Math.floor(viewportHeight * 0.7);
     }
 
-    await page.waitForTimeout(4000);
+    await page.waitForTimeout(5000);
     const newHeight = await page.evaluate(() => document.body.scrollHeight);
     if (newHeight === previousHeight) break;
     previousHeight = newHeight;
     attempts++;
   }
 
-  // 맨 위로 복귀 후 안정화
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(3000);
 }
@@ -150,31 +121,17 @@ async function captureSite(context, country, page_config) {
     await acceptCookies(page);
     await page.waitForTimeout(2000);
 
-    // 상단 뷰 캡처
-    await page.evaluate(() => window.scrollTo(0, 0));
-    await page.waitForTimeout(1000);
     await page.screenshot({ path: path.join(dir, `${today}-top.png`), fullPage: false });
 
-    // GNB Hover 캡처 (Homepage만)
-    if (page_config.gnbHover && country.gnbText) {
-      await captureGNBHover(page, dir, country.gnbText);
+    if (page_config.gnbHover) {
+      await captureGNBHover(page, dir);
     }
 
-    // 전체 스크롤 (lazy load + scroll animation 트리거)
     await page.mouse.move(68, 177);
     await page.waitForTimeout(1000);
+
     await fullScroll(page);
-
-    // Monitors 페이지는 전체 스크린샷 추가 캡처
-    if (page_config.captureFullPage) {
-      await page.screenshot({ path: path.join(dir, `${today}-full.png`), fullPage: true });
-      console.log(`    Full page captured`);
-    }
-
-    // Homepage도 full 저장 (기존 유지)
-    if (!page_config.captureFullPage) {
-      await page.screenshot({ path: path.join(dir, `${today}-full.png`), fullPage: true });
-    }
+    await page.screenshot({ path: path.join(dir, `${today}-full.png`), fullPage: true });
 
     console.log(`    ✅ Done`);
     return { siteId, country: country.code, page: page_config.id, url, date: today, success: true };
@@ -212,7 +169,6 @@ async function main() {
     await browser.close();
   }
 
-  // 메타데이터 저장
   const metaDir = path.join('docs', 'meta');
   fs.mkdirSync(metaDir, { recursive: true });
 
