@@ -32,7 +32,7 @@
     display: flex; gap: 0; align-items: stretch; overflow-x: auto;
   }
   .country-btn {
-    padding: 10px 16px; border: none; border-bottom: 3px solid transparent;
+    padding: 10px 14px; border: none; border-bottom: 3px solid transparent;
     background: none; cursor: pointer; color: #666;
     transition: all 0.15s; display: flex; align-items: center; gap: 6px;
     white-space: nowrap; font-size: 0.83rem;
@@ -40,7 +40,7 @@
   .country-btn:hover { color: #1428A0; background: #f5f7ff; }
   .country-btn.active { color: #1428A0; border-bottom-color: #1428A0; font-weight: 700; background: #f0f3ff; }
   .country-btn .flag { font-size: 1.3rem; line-height: 1; }
-  .country-btn .code { font-size: 0.78rem; font-weight: 600; }
+  .country-btn .label { font-size: 0.78rem; font-weight: 600; }
 
   /* 그리드 */
   .grid {
@@ -153,49 +153,49 @@
 <div class="country-slicer">
   <button class="country-btn active" data-country="de" onclick="filterCountry('de', this)">
       <span class="flag">🇩🇪</span>
-      <span class="code">DE</span>
+      <span class="label">Germany</span>
     </button><button class="country-btn" data-country="au" onclick="filterCountry('au', this)">
       <span class="flag">🇦🇺</span>
-      <span class="code">AU</span>
+      <span class="label">Australia</span>
     </button><button class="country-btn" data-country="be" onclick="filterCountry('be', this)">
       <span class="flag">🇧🇪</span>
-      <span class="code">BE</span>
+      <span class="label">Belgium</span>
     </button><button class="country-btn" data-country="be_fr" onclick="filterCountry('be_fr', this)">
       <span class="flag">🇧🇪</span>
-      <span class="code">BE-FR</span>
+      <span class="label">Belgium (FR)</span>
     </button><button class="country-btn" data-country="fr" onclick="filterCountry('fr', this)">
       <span class="flag">🇫🇷</span>
-      <span class="code">FR</span>
+      <span class="label">France</span>
     </button><button class="country-btn" data-country="it" onclick="filterCountry('it', this)">
       <span class="flag">🇮🇹</span>
-      <span class="code">IT</span>
+      <span class="label">Italy</span>
     </button><button class="country-btn" data-country="sec" onclick="filterCountry('sec', this)">
       <span class="flag">🇰🇷</span>
-      <span class="code">KR</span>
+      <span class="label">Korea</span>
     </button><button class="country-btn" data-country="nl" onclick="filterCountry('nl', this)">
       <span class="flag">🇳🇱</span>
-      <span class="code">NL</span>
+      <span class="label">Netherlands</span>
     </button><button class="country-btn" data-country="no" onclick="filterCountry('no', this)">
       <span class="flag">🇳🇴</span>
-      <span class="code">NO</span>
+      <span class="label">Norway</span>
     </button><button class="country-btn" data-country="pt" onclick="filterCountry('pt', this)">
       <span class="flag">🇵🇹</span>
-      <span class="code">PT</span>
+      <span class="label">Portugal</span>
     </button><button class="country-btn" data-country="es" onclick="filterCountry('es', this)">
       <span class="flag">🇪🇸</span>
-      <span class="code">ES</span>
+      <span class="label">Spain</span>
     </button><button class="country-btn" data-country="se" onclick="filterCountry('se', this)">
       <span class="flag">🇸🇪</span>
-      <span class="code">SE</span>
+      <span class="label">Sweden</span>
     </button><button class="country-btn" data-country="tr" onclick="filterCountry('tr', this)">
       <span class="flag">🇹🇷</span>
-      <span class="code">TR</span>
+      <span class="label">Turkey</span>
     </button><button class="country-btn" data-country="uk" onclick="filterCountry('uk', this)">
       <span class="flag">🇬🇧</span>
-      <span class="code">UK</span>
+      <span class="label">United Kingdom</span>
     </button><button class="country-btn" data-country="us" onclick="filterCountry('us', this)">
       <span class="flag">🇺🇸</span>
-      <span class="code">US</span>
+      <span class="label">United States</span>
     </button>
 </div>
 
@@ -204,7 +204,7 @@
       <div class="card" data-country="de">
         <div class="card-header">
           <span class="card-flag">🇩🇪</span>
-          <span class="card-country">DE</span>
+          <span class="card-country">Germany</span>
           <span class="card-title">Homepage</span>
           <a href="https://www.samsung.com/de/" target="_blank" class="card-link">↗ 방문</a>
         </div>
@@ -225,20 +225,18 @@
           </div>
         </div>
 
-        <div class="card-footer">
-          <a href="screenshots/de-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/de-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          <a href="screenshots/de-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
-        </div>
+        
+
+        <div class="card-footer"><a href="screenshots/de-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/de-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a><a href="screenshots/de-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card" data-country="de">
         <div class="card-header">
           <span class="card-flag">🇩🇪</span>
-          <span class="card-country">DE</span>
+          <span class="card-country">Germany</span>
           <span class="card-title">Monitors</span>
           <a href="https://www.samsung.com/de/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
-        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'de-monitors', 'top')">🖥️ 상단 뷰</button></div>
+        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'de-monitors', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'de-monitors', 'full')">📄 전체 페이지</button></div>
 
         <div class="tab-content active" id="de-monitors-top">
           <div class="img-wrap" onclick="openModal('de-monitors', 'top')">
@@ -249,16 +247,20 @@
 
         
 
-        <div class="card-footer">
-          <a href="screenshots/de-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/de-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          
+        
+        <div class="tab-content" id="de-monitors-full">
+          <div class="img-wrap" onclick="openModal('de-monitors', 'full')">
+            <div class="img-label">전체 페이지 · 2026-06-22</div>
+            <img src="screenshots/de-monitors/2026-06-22-full.png" onerror="this.parentElement.innerHTML='<p class=no-img>캡처 없음</p>'"/>
+          </div>
         </div>
+
+        <div class="card-footer"><a href="screenshots/de-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/de-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="au">
         <div class="card-header">
           <span class="card-flag">🇦🇺</span>
-          <span class="card-country">AU</span>
+          <span class="card-country">Australia</span>
           <span class="card-title">Homepage</span>
           <a href="https://www.samsung.com/au/" target="_blank" class="card-link">↗ 방문</a>
         </div>
@@ -279,20 +281,18 @@
           </div>
         </div>
 
-        <div class="card-footer">
-          <a href="screenshots/au-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/au-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          <a href="screenshots/au-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
-        </div>
+        
+
+        <div class="card-footer"><a href="screenshots/au-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/au-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a><a href="screenshots/au-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="au">
         <div class="card-header">
           <span class="card-flag">🇦🇺</span>
-          <span class="card-country">AU</span>
+          <span class="card-country">Australia</span>
           <span class="card-title">Monitors</span>
           <a href="https://www.samsung.com/au/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
-        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'au-monitors', 'top')">🖥️ 상단 뷰</button></div>
+        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'au-monitors', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'au-monitors', 'full')">📄 전체 페이지</button></div>
 
         <div class="tab-content active" id="au-monitors-top">
           <div class="img-wrap" onclick="openModal('au-monitors', 'top')">
@@ -303,16 +303,20 @@
 
         
 
-        <div class="card-footer">
-          <a href="screenshots/au-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/au-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          
+        
+        <div class="tab-content" id="au-monitors-full">
+          <div class="img-wrap" onclick="openModal('au-monitors', 'full')">
+            <div class="img-label">전체 페이지 · 2026-06-22</div>
+            <img src="screenshots/au-monitors/2026-06-22-full.png" onerror="this.parentElement.innerHTML='<p class=no-img>캡처 없음</p>'"/>
+          </div>
         </div>
+
+        <div class="card-footer"><a href="screenshots/au-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/au-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="be">
         <div class="card-header">
           <span class="card-flag">🇧🇪</span>
-          <span class="card-country">BE</span>
+          <span class="card-country">Belgium</span>
           <span class="card-title">Homepage</span>
           <a href="https://www.samsung.com/be/" target="_blank" class="card-link">↗ 방문</a>
         </div>
@@ -333,20 +337,18 @@
           </div>
         </div>
 
-        <div class="card-footer">
-          <a href="screenshots/be-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/be-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          <a href="screenshots/be-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
-        </div>
+        
+
+        <div class="card-footer"><a href="screenshots/be-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/be-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a><a href="screenshots/be-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="be">
         <div class="card-header">
           <span class="card-flag">🇧🇪</span>
-          <span class="card-country">BE</span>
+          <span class="card-country">Belgium</span>
           <span class="card-title">Monitors</span>
           <a href="https://www.samsung.com/be/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
-        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'be-monitors', 'top')">🖥️ 상단 뷰</button></div>
+        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'be-monitors', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'be-monitors', 'full')">📄 전체 페이지</button></div>
 
         <div class="tab-content active" id="be-monitors-top">
           <div class="img-wrap" onclick="openModal('be-monitors', 'top')">
@@ -357,16 +359,20 @@
 
         
 
-        <div class="card-footer">
-          <a href="screenshots/be-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/be-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          
+        
+        <div class="tab-content" id="be-monitors-full">
+          <div class="img-wrap" onclick="openModal('be-monitors', 'full')">
+            <div class="img-label">전체 페이지 · 2026-06-22</div>
+            <img src="screenshots/be-monitors/2026-06-22-full.png" onerror="this.parentElement.innerHTML='<p class=no-img>캡처 없음</p>'"/>
+          </div>
         </div>
+
+        <div class="card-footer"><a href="screenshots/be-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/be-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="be_fr">
         <div class="card-header">
           <span class="card-flag">🇧🇪</span>
-          <span class="card-country">BE-FR</span>
+          <span class="card-country">Belgium (FR)</span>
           <span class="card-title">Homepage</span>
           <a href="https://www.samsung.com/be_fr/" target="_blank" class="card-link">↗ 방문</a>
         </div>
@@ -387,20 +393,18 @@
           </div>
         </div>
 
-        <div class="card-footer">
-          <a href="screenshots/be_fr-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/be_fr-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          <a href="screenshots/be_fr-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
-        </div>
+        
+
+        <div class="card-footer"><a href="screenshots/be_fr-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/be_fr-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a><a href="screenshots/be_fr-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="be_fr">
         <div class="card-header">
           <span class="card-flag">🇧🇪</span>
-          <span class="card-country">BE-FR</span>
+          <span class="card-country">Belgium (FR)</span>
           <span class="card-title">Monitors</span>
           <a href="https://www.samsung.com/be_fr/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
-        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'be_fr-monitors', 'top')">🖥️ 상단 뷰</button></div>
+        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'be_fr-monitors', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'be_fr-monitors', 'full')">📄 전체 페이지</button></div>
 
         <div class="tab-content active" id="be_fr-monitors-top">
           <div class="img-wrap" onclick="openModal('be_fr-monitors', 'top')">
@@ -411,16 +415,20 @@
 
         
 
-        <div class="card-footer">
-          <a href="screenshots/be_fr-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/be_fr-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          
+        
+        <div class="tab-content" id="be_fr-monitors-full">
+          <div class="img-wrap" onclick="openModal('be_fr-monitors', 'full')">
+            <div class="img-label">전체 페이지 · 2026-06-22</div>
+            <img src="screenshots/be_fr-monitors/2026-06-22-full.png" onerror="this.parentElement.innerHTML='<p class=no-img>캡처 없음</p>'"/>
+          </div>
         </div>
+
+        <div class="card-footer"><a href="screenshots/be_fr-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/be_fr-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="fr">
         <div class="card-header">
           <span class="card-flag">🇫🇷</span>
-          <span class="card-country">FR</span>
+          <span class="card-country">France</span>
           <span class="card-title">Homepage</span>
           <a href="https://www.samsung.com/fr/" target="_blank" class="card-link">↗ 방문</a>
         </div>
@@ -441,20 +449,18 @@
           </div>
         </div>
 
-        <div class="card-footer">
-          <a href="screenshots/fr-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/fr-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          <a href="screenshots/fr-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
-        </div>
+        
+
+        <div class="card-footer"><a href="screenshots/fr-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/fr-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a><a href="screenshots/fr-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="fr">
         <div class="card-header">
           <span class="card-flag">🇫🇷</span>
-          <span class="card-country">FR</span>
+          <span class="card-country">France</span>
           <span class="card-title">Monitors</span>
           <a href="https://www.samsung.com/fr/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
-        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'fr-monitors', 'top')">🖥️ 상단 뷰</button></div>
+        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'fr-monitors', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'fr-monitors', 'full')">📄 전체 페이지</button></div>
 
         <div class="tab-content active" id="fr-monitors-top">
           <div class="img-wrap" onclick="openModal('fr-monitors', 'top')">
@@ -465,16 +471,20 @@
 
         
 
-        <div class="card-footer">
-          <a href="screenshots/fr-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/fr-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          
+        
+        <div class="tab-content" id="fr-monitors-full">
+          <div class="img-wrap" onclick="openModal('fr-monitors', 'full')">
+            <div class="img-label">전체 페이지 · 2026-06-22</div>
+            <img src="screenshots/fr-monitors/2026-06-22-full.png" onerror="this.parentElement.innerHTML='<p class=no-img>캡처 없음</p>'"/>
+          </div>
         </div>
+
+        <div class="card-footer"><a href="screenshots/fr-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/fr-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="it">
         <div class="card-header">
           <span class="card-flag">🇮🇹</span>
-          <span class="card-country">IT</span>
+          <span class="card-country">Italy</span>
           <span class="card-title">Homepage</span>
           <a href="https://www.samsung.com/it/" target="_blank" class="card-link">↗ 방문</a>
         </div>
@@ -495,20 +505,18 @@
           </div>
         </div>
 
-        <div class="card-footer">
-          <a href="screenshots/it-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/it-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          <a href="screenshots/it-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
-        </div>
+        
+
+        <div class="card-footer"><a href="screenshots/it-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/it-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a><a href="screenshots/it-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="it">
         <div class="card-header">
           <span class="card-flag">🇮🇹</span>
-          <span class="card-country">IT</span>
+          <span class="card-country">Italy</span>
           <span class="card-title">Monitors</span>
           <a href="https://www.samsung.com/it/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
-        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'it-monitors', 'top')">🖥️ 상단 뷰</button></div>
+        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'it-monitors', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'it-monitors', 'full')">📄 전체 페이지</button></div>
 
         <div class="tab-content active" id="it-monitors-top">
           <div class="img-wrap" onclick="openModal('it-monitors', 'top')">
@@ -519,16 +527,20 @@
 
         
 
-        <div class="card-footer">
-          <a href="screenshots/it-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/it-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          
+        
+        <div class="tab-content" id="it-monitors-full">
+          <div class="img-wrap" onclick="openModal('it-monitors', 'full')">
+            <div class="img-label">전체 페이지 · 2026-06-22</div>
+            <img src="screenshots/it-monitors/2026-06-22-full.png" onerror="this.parentElement.innerHTML='<p class=no-img>캡처 없음</p>'"/>
+          </div>
         </div>
+
+        <div class="card-footer"><a href="screenshots/it-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/it-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="sec">
         <div class="card-header">
           <span class="card-flag">🇰🇷</span>
-          <span class="card-country">KR</span>
+          <span class="card-country">Korea</span>
           <span class="card-title">Homepage</span>
           <a href="https://www.samsung.com/sec/" target="_blank" class="card-link">↗ 방문</a>
         </div>
@@ -549,20 +561,18 @@
           </div>
         </div>
 
-        <div class="card-footer">
-          <a href="screenshots/sec-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/sec-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          <a href="screenshots/sec-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
-        </div>
+        
+
+        <div class="card-footer"><a href="screenshots/sec-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/sec-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a><a href="screenshots/sec-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="sec">
         <div class="card-header">
           <span class="card-flag">🇰🇷</span>
-          <span class="card-country">KR</span>
+          <span class="card-country">Korea</span>
           <span class="card-title">Monitors</span>
           <a href="https://www.samsung.com/sec/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
-        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'sec-monitors', 'top')">🖥️ 상단 뷰</button></div>
+        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'sec-monitors', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'sec-monitors', 'full')">📄 전체 페이지</button></div>
 
         <div class="tab-content active" id="sec-monitors-top">
           <div class="img-wrap" onclick="openModal('sec-monitors', 'top')">
@@ -573,16 +583,20 @@
 
         
 
-        <div class="card-footer">
-          <a href="screenshots/sec-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/sec-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          
+        
+        <div class="tab-content" id="sec-monitors-full">
+          <div class="img-wrap" onclick="openModal('sec-monitors', 'full')">
+            <div class="img-label">전체 페이지 · 2026-06-22</div>
+            <img src="screenshots/sec-monitors/2026-06-22-full.png" onerror="this.parentElement.innerHTML='<p class=no-img>캡처 없음</p>'"/>
+          </div>
         </div>
+
+        <div class="card-footer"><a href="screenshots/sec-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/sec-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="nl">
         <div class="card-header">
           <span class="card-flag">🇳🇱</span>
-          <span class="card-country">NL</span>
+          <span class="card-country">Netherlands</span>
           <span class="card-title">Homepage</span>
           <a href="https://www.samsung.com/nl/" target="_blank" class="card-link">↗ 방문</a>
         </div>
@@ -603,20 +617,18 @@
           </div>
         </div>
 
-        <div class="card-footer">
-          <a href="screenshots/nl-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/nl-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          <a href="screenshots/nl-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
-        </div>
+        
+
+        <div class="card-footer"><a href="screenshots/nl-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/nl-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a><a href="screenshots/nl-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="nl">
         <div class="card-header">
           <span class="card-flag">🇳🇱</span>
-          <span class="card-country">NL</span>
+          <span class="card-country">Netherlands</span>
           <span class="card-title">Monitors</span>
           <a href="https://www.samsung.com/nl/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
-        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'nl-monitors', 'top')">🖥️ 상단 뷰</button></div>
+        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'nl-monitors', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'nl-monitors', 'full')">📄 전체 페이지</button></div>
 
         <div class="tab-content active" id="nl-monitors-top">
           <div class="img-wrap" onclick="openModal('nl-monitors', 'top')">
@@ -627,16 +639,20 @@
 
         
 
-        <div class="card-footer">
-          <a href="screenshots/nl-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/nl-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          
+        
+        <div class="tab-content" id="nl-monitors-full">
+          <div class="img-wrap" onclick="openModal('nl-monitors', 'full')">
+            <div class="img-label">전체 페이지 · 2026-06-22</div>
+            <img src="screenshots/nl-monitors/2026-06-22-full.png" onerror="this.parentElement.innerHTML='<p class=no-img>캡처 없음</p>'"/>
+          </div>
         </div>
+
+        <div class="card-footer"><a href="screenshots/nl-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/nl-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="no">
         <div class="card-header">
           <span class="card-flag">🇳🇴</span>
-          <span class="card-country">NO</span>
+          <span class="card-country">Norway</span>
           <span class="card-title">Homepage</span>
           <a href="https://www.samsung.com/no/" target="_blank" class="card-link">↗ 방문</a>
         </div>
@@ -657,20 +673,18 @@
           </div>
         </div>
 
-        <div class="card-footer">
-          <a href="screenshots/no-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/no-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          <a href="screenshots/no-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
-        </div>
+        
+
+        <div class="card-footer"><a href="screenshots/no-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/no-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a><a href="screenshots/no-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="no">
         <div class="card-header">
           <span class="card-flag">🇳🇴</span>
-          <span class="card-country">NO</span>
+          <span class="card-country">Norway</span>
           <span class="card-title">Monitors</span>
           <a href="https://www.samsung.com/no/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
-        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'no-monitors', 'top')">🖥️ 상단 뷰</button></div>
+        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'no-monitors', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'no-monitors', 'full')">📄 전체 페이지</button></div>
 
         <div class="tab-content active" id="no-monitors-top">
           <div class="img-wrap" onclick="openModal('no-monitors', 'top')">
@@ -681,16 +695,20 @@
 
         
 
-        <div class="card-footer">
-          <a href="screenshots/no-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/no-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          
+        
+        <div class="tab-content" id="no-monitors-full">
+          <div class="img-wrap" onclick="openModal('no-monitors', 'full')">
+            <div class="img-label">전체 페이지 · 2026-06-22</div>
+            <img src="screenshots/no-monitors/2026-06-22-full.png" onerror="this.parentElement.innerHTML='<p class=no-img>캡처 없음</p>'"/>
+          </div>
         </div>
+
+        <div class="card-footer"><a href="screenshots/no-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/no-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="pt">
         <div class="card-header">
           <span class="card-flag">🇵🇹</span>
-          <span class="card-country">PT</span>
+          <span class="card-country">Portugal</span>
           <span class="card-title">Homepage</span>
           <a href="https://www.samsung.com/pt/" target="_blank" class="card-link">↗ 방문</a>
         </div>
@@ -711,20 +729,18 @@
           </div>
         </div>
 
-        <div class="card-footer">
-          <a href="screenshots/pt-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/pt-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          <a href="screenshots/pt-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
-        </div>
+        
+
+        <div class="card-footer"><a href="screenshots/pt-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/pt-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a><a href="screenshots/pt-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="pt">
         <div class="card-header">
           <span class="card-flag">🇵🇹</span>
-          <span class="card-country">PT</span>
+          <span class="card-country">Portugal</span>
           <span class="card-title">Monitors</span>
           <a href="https://www.samsung.com/pt/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
-        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'pt-monitors', 'top')">🖥️ 상단 뷰</button></div>
+        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'pt-monitors', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'pt-monitors', 'full')">📄 전체 페이지</button></div>
 
         <div class="tab-content active" id="pt-monitors-top">
           <div class="img-wrap" onclick="openModal('pt-monitors', 'top')">
@@ -735,16 +751,20 @@
 
         
 
-        <div class="card-footer">
-          <a href="screenshots/pt-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/pt-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          
+        
+        <div class="tab-content" id="pt-monitors-full">
+          <div class="img-wrap" onclick="openModal('pt-monitors', 'full')">
+            <div class="img-label">전체 페이지 · 2026-06-22</div>
+            <img src="screenshots/pt-monitors/2026-06-22-full.png" onerror="this.parentElement.innerHTML='<p class=no-img>캡처 없음</p>'"/>
+          </div>
         </div>
+
+        <div class="card-footer"><a href="screenshots/pt-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/pt-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="es">
         <div class="card-header">
           <span class="card-flag">🇪🇸</span>
-          <span class="card-country">ES</span>
+          <span class="card-country">Spain</span>
           <span class="card-title">Homepage</span>
           <a href="https://www.samsung.com/es/" target="_blank" class="card-link">↗ 방문</a>
         </div>
@@ -765,20 +785,18 @@
           </div>
         </div>
 
-        <div class="card-footer">
-          <a href="screenshots/es-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/es-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          <a href="screenshots/es-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
-        </div>
+        
+
+        <div class="card-footer"><a href="screenshots/es-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/es-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a><a href="screenshots/es-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="es">
         <div class="card-header">
           <span class="card-flag">🇪🇸</span>
-          <span class="card-country">ES</span>
+          <span class="card-country">Spain</span>
           <span class="card-title">Monitors</span>
           <a href="https://www.samsung.com/es/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
-        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'es-monitors', 'top')">🖥️ 상단 뷰</button></div>
+        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'es-monitors', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'es-monitors', 'full')">📄 전체 페이지</button></div>
 
         <div class="tab-content active" id="es-monitors-top">
           <div class="img-wrap" onclick="openModal('es-monitors', 'top')">
@@ -789,16 +807,20 @@
 
         
 
-        <div class="card-footer">
-          <a href="screenshots/es-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/es-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          
+        
+        <div class="tab-content" id="es-monitors-full">
+          <div class="img-wrap" onclick="openModal('es-monitors', 'full')">
+            <div class="img-label">전체 페이지 · 2026-06-22</div>
+            <img src="screenshots/es-monitors/2026-06-22-full.png" onerror="this.parentElement.innerHTML='<p class=no-img>캡처 없음</p>'"/>
+          </div>
         </div>
+
+        <div class="card-footer"><a href="screenshots/es-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/es-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="se">
         <div class="card-header">
           <span class="card-flag">🇸🇪</span>
-          <span class="card-country">SE</span>
+          <span class="card-country">Sweden</span>
           <span class="card-title">Homepage</span>
           <a href="https://www.samsung.com/se/" target="_blank" class="card-link">↗ 방문</a>
         </div>
@@ -819,20 +841,18 @@
           </div>
         </div>
 
-        <div class="card-footer">
-          <a href="screenshots/se-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/se-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          <a href="screenshots/se-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
-        </div>
+        
+
+        <div class="card-footer"><a href="screenshots/se-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/se-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a><a href="screenshots/se-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="se">
         <div class="card-header">
           <span class="card-flag">🇸🇪</span>
-          <span class="card-country">SE</span>
+          <span class="card-country">Sweden</span>
           <span class="card-title">Monitors</span>
           <a href="https://www.samsung.com/se/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
-        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'se-monitors', 'top')">🖥️ 상단 뷰</button></div>
+        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'se-monitors', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'se-monitors', 'full')">📄 전체 페이지</button></div>
 
         <div class="tab-content active" id="se-monitors-top">
           <div class="img-wrap" onclick="openModal('se-monitors', 'top')">
@@ -843,16 +863,20 @@
 
         
 
-        <div class="card-footer">
-          <a href="screenshots/se-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/se-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          
+        
+        <div class="tab-content" id="se-monitors-full">
+          <div class="img-wrap" onclick="openModal('se-monitors', 'full')">
+            <div class="img-label">전체 페이지 · 2026-06-22</div>
+            <img src="screenshots/se-monitors/2026-06-22-full.png" onerror="this.parentElement.innerHTML='<p class=no-img>캡처 없음</p>'"/>
+          </div>
         </div>
+
+        <div class="card-footer"><a href="screenshots/se-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/se-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="tr">
         <div class="card-header">
           <span class="card-flag">🇹🇷</span>
-          <span class="card-country">TR</span>
+          <span class="card-country">Turkey</span>
           <span class="card-title">Homepage</span>
           <a href="https://www.samsung.com/tr/" target="_blank" class="card-link">↗ 방문</a>
         </div>
@@ -873,20 +897,18 @@
           </div>
         </div>
 
-        <div class="card-footer">
-          <a href="screenshots/tr-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/tr-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          <a href="screenshots/tr-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
-        </div>
+        
+
+        <div class="card-footer"><a href="screenshots/tr-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/tr-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a><a href="screenshots/tr-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="tr">
         <div class="card-header">
           <span class="card-flag">🇹🇷</span>
-          <span class="card-country">TR</span>
+          <span class="card-country">Turkey</span>
           <span class="card-title">Monitors</span>
           <a href="https://www.samsung.com/tr/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
-        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'tr-monitors', 'top')">🖥️ 상단 뷰</button></div>
+        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'tr-monitors', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'tr-monitors', 'full')">📄 전체 페이지</button></div>
 
         <div class="tab-content active" id="tr-monitors-top">
           <div class="img-wrap" onclick="openModal('tr-monitors', 'top')">
@@ -897,16 +919,20 @@
 
         
 
-        <div class="card-footer">
-          <a href="screenshots/tr-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/tr-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          
+        
+        <div class="tab-content" id="tr-monitors-full">
+          <div class="img-wrap" onclick="openModal('tr-monitors', 'full')">
+            <div class="img-label">전체 페이지 · 2026-06-22</div>
+            <img src="screenshots/tr-monitors/2026-06-22-full.png" onerror="this.parentElement.innerHTML='<p class=no-img>캡처 없음</p>'"/>
+          </div>
         </div>
+
+        <div class="card-footer"><a href="screenshots/tr-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/tr-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="uk">
         <div class="card-header">
           <span class="card-flag">🇬🇧</span>
-          <span class="card-country">UK</span>
+          <span class="card-country">United Kingdom</span>
           <span class="card-title">Homepage</span>
           <a href="https://www.samsung.com/uk/" target="_blank" class="card-link">↗ 방문</a>
         </div>
@@ -927,20 +953,18 @@
           </div>
         </div>
 
-        <div class="card-footer">
-          <a href="screenshots/uk-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/uk-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          <a href="screenshots/uk-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
-        </div>
+        
+
+        <div class="card-footer"><a href="screenshots/uk-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/uk-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a><a href="screenshots/uk-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="uk">
         <div class="card-header">
           <span class="card-flag">🇬🇧</span>
-          <span class="card-country">UK</span>
+          <span class="card-country">United Kingdom</span>
           <span class="card-title">Monitors</span>
           <a href="https://www.samsung.com/uk/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
-        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'uk-monitors', 'top')">🖥️ 상단 뷰</button></div>
+        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'uk-monitors', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'uk-monitors', 'full')">📄 전체 페이지</button></div>
 
         <div class="tab-content active" id="uk-monitors-top">
           <div class="img-wrap" onclick="openModal('uk-monitors', 'top')">
@@ -951,16 +975,20 @@
 
         
 
-        <div class="card-footer">
-          <a href="screenshots/uk-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/uk-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          
+        
+        <div class="tab-content" id="uk-monitors-full">
+          <div class="img-wrap" onclick="openModal('uk-monitors', 'full')">
+            <div class="img-label">전체 페이지 · 2026-06-22</div>
+            <img src="screenshots/uk-monitors/2026-06-22-full.png" onerror="this.parentElement.innerHTML='<p class=no-img>캡처 없음</p>'"/>
+          </div>
         </div>
+
+        <div class="card-footer"><a href="screenshots/uk-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/uk-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="us">
         <div class="card-header">
           <span class="card-flag">🇺🇸</span>
-          <span class="card-country">US</span>
+          <span class="card-country">United States</span>
           <span class="card-title">Homepage</span>
           <a href="https://www.samsung.com/us/" target="_blank" class="card-link">↗ 방문</a>
         </div>
@@ -981,20 +1009,18 @@
           </div>
         </div>
 
-        <div class="card-footer">
-          <a href="screenshots/us-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/us-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          <a href="screenshots/us-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a>
-        </div>
+        
+
+        <div class="card-footer"><a href="screenshots/us-home/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/us-home/2026-06-22-gnb-hover.png" target="_blank" class="badge">📂 GNB 원본</a><a href="screenshots/us-home/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
       <div class="card hidden" data-country="us">
         <div class="card-header">
           <span class="card-flag">🇺🇸</span>
-          <span class="card-country">US</span>
+          <span class="card-country">United States</span>
           <span class="card-title">Monitors</span>
           <a href="https://www.samsung.com/us/monitors/all-monitors/" target="_blank" class="card-link">↗ 방문</a>
         </div>
-        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'us-monitors', 'top')">🖥️ 상단 뷰</button></div>
+        <div class="tab-bar"><button class="tab active" onclick="switchTab(this, 'us-monitors', 'top')">🖥️ 상단 뷰</button><button class="tab" onclick="switchTab(this, 'us-monitors', 'full')">📄 전체 페이지</button></div>
 
         <div class="tab-content active" id="us-monitors-top">
           <div class="img-wrap" onclick="openModal('us-monitors', 'top')">
@@ -1005,11 +1031,15 @@
 
         
 
-        <div class="card-footer">
-          <a href="screenshots/us-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="screenshots/us-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a>
-          
+        
+        <div class="tab-content" id="us-monitors-full">
+          <div class="img-wrap" onclick="openModal('us-monitors', 'full')">
+            <div class="img-label">전체 페이지 · 2026-06-22</div>
+            <img src="screenshots/us-monitors/2026-06-22-full.png" onerror="this.parentElement.innerHTML='<p class=no-img>캡처 없음</p>'"/>
+          </div>
         </div>
+
+        <div class="card-footer"><a href="screenshots/us-monitors/2026-06-22-top.png" target="_blank" class="badge">🖼️ 상단 원본</a><a href="screenshots/us-monitors/2026-06-22-full.png" target="_blank" class="badge">📄 전체 페이지</a></div>
       </div>
 </div>
 
@@ -1023,7 +1053,7 @@
 </div>
 
 <script>
-const config = {"countries":[{"code":"de","name":"🇩🇪 DE","gnbText":"Computers & Displays"},{"code":"au","name":"🇦🇺 AU","gnbText":"Monitors & Storage"},{"code":"be","name":"🇧🇪 BE","gnbText":"Computers & Monitors"},{"code":"be_fr","name":"🇧🇪 BE-FR","gnbText":"Computers & Monitors"},{"code":"fr","name":"🇫🇷 FR","gnbText":"Computers & Screens"},{"code":"it","name":"🇮🇹 IT","gnbText":"Computers and Displays"},{"code":"sec","name":"🇰🇷 KR","gnbText":"PC/주변기기"},{"code":"nl","name":"🇳🇱 NL","gnbText":"Computers & Monitors"},{"code":"no","name":"🇳🇴 NO","gnbText":"PCs & Monitors"},{"code":"pt","name":"🇵🇹 PT","gnbText":"Monitors & Storage"},{"code":"es","name":"🇪🇸 ES","gnbText":"Computing and Displays"},{"code":"se","name":"🇸🇪 SE","gnbText":"Computers & Monitors"},{"code":"tr","name":"🇹🇷 TR","gnbText":"Monitoring & Storage"},{"code":"uk","name":"🇬🇧 UK","gnbText":"Computers & Monitors"},{"code":"us","name":"🇺🇸 US","gnbText":"Computers & Monitors"}],"pages":[{"name":"Homepage","path":"/","id":"home","gnbHover":true},{"name":"Monitors","path":"/monitors/all-monitors/","id":"monitors","gnbHover":false}],"schedule":"0 9 * * *","flagMap":{"de":"🇩🇪","au":"🇦🇺","be":"🇧🇪","be_fr":"🇧🇪","fr":"🇫🇷","it":"🇮🇹","sec":"🇰🇷","nl":"🇳🇱","no":"🇳🇴","pt":"🇵🇹","es":"🇪🇸","se":"🇸🇪","tr":"🇹🇷","uk":"🇬🇧","us":"🇺🇸"},"labelMap":{"de":"DE","au":"AU","be":"BE","be_fr":"BE-FR","fr":"FR","it":"IT","sec":"KR","nl":"NL","no":"NO","pt":"PT","es":"ES","se":"SE","tr":"TR","uk":"UK","us":"US"}};
+const config = {"countries":[{"code":"de","name":"Germany","gnbText":"Computer & Monitore"},{"code":"au","name":"Australia","gnbText":"Monitors & Storage"},{"code":"be","name":"Belgium","gnbText":"Computers & Monitoren"},{"code":"be_fr","name":"Belgium (FR)","gnbText":"Ordinateurs et écrans"},{"code":"fr","name":"France","gnbText":"Ordinateurs et écrans"},{"code":"it","name":"Italy","gnbText":"Computer e monitor"},{"code":"sec","name":"Korea","gnbText":"PC/주변기기"},{"code":"nl","name":"Netherlands","gnbText":"Computers & Monitoren"},{"code":"no","name":"Norway","gnbText":"PC-er og skjermer"},{"code":"pt","name":"Portugal","gnbText":"Monitores e armazenamento"},{"code":"es","name":"Spain","gnbText":"Informática y monitores"},{"code":"se","name":"Sweden","gnbText":"Datorer & Bildskärmar"},{"code":"tr","name":"Turkey","gnbText":"Bilgisayar & Monitör"},{"code":"uk","name":"United Kingdom","gnbText":"Computers & Monitors"},{"code":"us","name":"United States","gnbText":"Computers & Monitors"}],"pages":[{"name":"Homepage","path":"/","id":"home","gnbHover":true,"captureFullPage":false},{"name":"Monitors","path":"/monitors/all-monitors/","id":"monitors","gnbHover":false,"captureFullPage":true}],"schedule":"0 9 * * *","flagMap":{"de":"🇩🇪","au":"🇦🇺","be":"🇧🇪","be_fr":"🇧🇪","fr":"🇫🇷","it":"🇮🇹","sec":"🇰🇷","nl":"🇳🇱","no":"🇳🇴","pt":"🇵🇹","es":"🇪🇸","se":"🇸🇪","tr":"🇹🇷","uk":"🇬🇧","us":"🇺🇸"},"labelMap":{"de":"Germany","au":"Australia","be":"Belgium","be_fr":"Belgium (FR)","fr":"France","it":"Italy","sec":"Korea","nl":"Netherlands","no":"Norway","pt":"Portugal","es":"Spain","se":"Sweden","tr":"Turkey","uk":"United Kingdom","us":"United States"}};
 const dates = ["2026-06-22","2026-06-21","2026-06-20","2026-06-19","2026-06-18","2026-06-17","2026-06-16","2026-06-15","2026-06-14","2026-06-13","2026-06-12","2026-06-11","2026-06-10","2026-06-09","2026-06-08","2026-06-07","2026-06-06","2026-06-05","2026-06-04","2026-06-03","2026-06-02","2026-06-01","2026-05-31","2026-05-30","2026-05-29","2026-05-28","2026-05-27","2026-05-25"];
 let currentDate = dates[0] || '';
 
@@ -1046,6 +1076,10 @@ function changeDate(date) {
         const gnbEl = document.querySelector('#' + siteId + '-gnb img');
         if (gnbEl) gnbEl.src = 'screenshots/' + siteId + '/' + date + '-gnb-hover.png';
       }
+      if (page.captureFullPage) {
+        const fullEl = document.querySelector('#' + siteId + '-full img');
+        if (fullEl) fullEl.src = 'screenshots/' + siteId + '/' + date + '-full.png';
+      }
       const card = topEl ? topEl.closest('.card') : null;
       if (card) {
         card.querySelectorAll('.badge').forEach(b => {
@@ -1065,7 +1099,8 @@ function switchTab(btn, siteId, tab) {
   btn.closest('.card').querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
   btn.closest('.card').querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  document.getElementById(siteId + '-' + tab).classList.add('active');
+  const el = document.getElementById(siteId + '-' + tab);
+  if (el) el.classList.add('active');
 }
 
 function openModal(siteId, type) {
