@@ -66,13 +66,16 @@ async function captureGNBHover(page, dir, gnbText) {
 async function fullScroll(page) {
   // 1단계: 모든 애니메이션 CSS 비활성화 (스크롤 전에 미리)
   await page.addStyleTag({
-    content: `
-      *, *::before, *::after {
-        animation-duration: 0.01ms !important;
-        animation-delay: 0ms !important;
-        transition-duration: 0.01ms !important;
-        transition-delay: 0ms !important;
-      }
+   content: `
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
+      transition-duration: 0.01ms !important;
+      transition-delay: 0ms !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      transform: none !important;
+    }
     `
   });
 
