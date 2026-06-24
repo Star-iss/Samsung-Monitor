@@ -8,6 +8,21 @@ const indexPath = path.join(metaDir, 'index.json');
 const dates = fs.existsSync(indexPath) ? JSON.parse(fs.readFileSync(indexPath, 'utf8')) : [];
 const latest = dates[0] || null;
 
+// 국가 코드별 국기 이모지 직접 매핑
+const flagMap = {
+  de: '🇩🇪', au: '🇦🇺', be: '🇧🇪', be_fr: '🇧🇪',
+  fr: '🇫🇷', it: '🇮🇹', sec: '🇰🇷', nl: '🇳🇱',
+  no: '🇳🇴', pt: '🇵🇹', es: '🇪🇸', se: '🇸🇪',
+  tr: '🇹🇷', uk: '🇬🇧', us: '🇺🇸'
+};
+
+const labelMap = {
+  de: 'DE', au: 'AU', be: 'BE', be_fr: 'BE-FR',
+  fr: 'FR', it: 'IT', sec: 'KR', nl: 'NL',
+  no: 'NO', pt: 'PT', es: 'ES', se: 'SE',
+  tr: 'TR', uk: 'UK', us: 'US'
+};
+
 const html = `<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -27,35 +42,35 @@ const html = `<!DOCTYPE html>
   header .meta { font-size: 0.82rem; opacity: 0.8; }
 
   .toolbar {
-    background: white; padding: 14px 32px;
+    background: white; padding: 12px 32px;
     border-bottom: 1px solid #e0e0e0;
-    display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+    display: flex; gap: 16px; align-items: center;
   }
   .toolbar label { font-size: 0.85rem; color: #555; font-weight: 600; }
-  .toolbar select {
-    padding: 6px 12px; border: 1px solid #ccc;
-    border-radius: 6px; font-size: 0.85rem; cursor: pointer;
-  }
+  .toolbar select { padding: 6px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.85rem; cursor: pointer; }
+  .toolbar .right { margin-left: auto; font-size: 0.82rem; color: #888; }
 
+  /* 국가 슬라이서 */
   .country-slicer {
-    background: white; padding: 10px 32px;
-    border-bottom: 1px solid #e0e0e0;
-    display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+    background: white; padding: 0 32px;
+    border-bottom: 2px solid #e0e0e0;
+    display: flex; gap: 0; align-items: stretch; overflow-x: auto;
   }
-  .slicer-label { font-size: 0.82rem; color: #555; font-weight: 600; margin-right: 4px; }
   .country-btn {
-    padding: 5px 12px; border: 1.5px solid #ddd;
-    border-radius: 20px; background: white;
-    font-size: 0.82rem; cursor: pointer; color: #444;
-    transition: all 0.15s; display: flex; align-items: center; gap: 5px;
+    padding: 10px 16px; border: none; border-bottom: 3px solid transparent;
+    background: none; cursor: pointer; color: #666;
+    transition: all 0.15s; display: flex; align-items: center; gap: 6px;
+    white-space: nowrap; font-size: 0.83rem;
   }
-  .country-btn:hover { border-color: #1428A0; color: #1428A0; }
-  .country-btn.active { background: #1428A0; color: white; border-color: #1428A0; font-weight: 600; }
-  .country-btn .flag { font-size: 1rem; line-height: 1; }
+  .country-btn:hover { color: #1428A0; background: #f5f7ff; }
+  .country-btn.active { color: #1428A0; border-bottom-color: #1428A0; font-weight: 700; background: #f0f3ff; }
+  .country-btn .flag { font-size: 1.3rem; line-height: 1; }
+  .country-btn .code { font-size: 0.78rem; font-weight: 600; }
 
+  /* 그리드 */
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
     gap: 20px; padding: 24px 32px;
     max-width: 1600px; margin: 0 auto;
   }
@@ -63,17 +78,20 @@ const html = `<!DOCTYPE html>
   .card {
     background: white; border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-    overflow: hidden; transition: transform 0.15s;
+    overflow: hidden; transition: transform 0.15s, box-shadow 0.15s;
   }
-  .card:hover { transform: translateY(-2px); }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.11); }
   .card.hidden { display: none; }
 
-  .card-header { padding: 14px 18px 10px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 8px; }
-  .country-flag { font-size: 1.2rem; }
-  .country-code { background: #e8eaf6; color: #1428A0; font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
-  .site-name { font-weight: 700; font-size: 0.95rem; color: #222; }
-  .site-url { font-size: 0.75rem; color: #aaa; margin-left: auto; text-decoration: none; }
-  .site-url:hover { color: #1428A0; }
+  .card-header {
+    padding: 14px 18px 10px; border-bottom: 1px solid #f0f0f0;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-flag { font-size: 1.5rem; line-height: 1; }
+  .card-country { background: #1428A0; color: white; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
+  .card-title { font-weight: 700; font-size: 0.95rem; color: #222; }
+  .card-link { font-size: 0.75rem; color: #aaa; margin-left: auto; text-decoration: none; }
+  .card-link:hover { color: #1428A0; }
 
   .tab-bar { display: flex; border-bottom: 1px solid #eee; background: #fafafa; }
   .tab {
@@ -106,6 +124,7 @@ const html = `<!DOCTYPE html>
   }
   .badge:hover { background: #1428A0; color: white; }
 
+  /* Modal */
   .modal-overlay {
     display: none; position: fixed; inset: 0;
     background: rgba(0,0,0,0.75); z-index: 100;
@@ -133,6 +152,9 @@ const html = `<!DOCTYPE html>
     display: inline-block; margin-top: 10px; background: #1428A0; color: white;
     padding: 7px 16px; border-radius: 8px; font-size: 0.82rem; text-decoration: none;
   }
+
+  ::-webkit-scrollbar { height: 4px; }
+  ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
 </style>
 </head>
 <body>
@@ -150,24 +172,24 @@ const html = `<!DOCTYPE html>
   <select id="dateSelect" onchange="changeDate(this.value)">
     ${dates.map(d => `<option value="${d}">${d}</option>`).join('')}
   </select>
-  <span style="margin-left:auto;font-size:0.82rem;color:#888;">총 ${config.countries.length}개 국가 × ${config.pages.length}개 페이지</span>
+  <span class="right">총 ${config.countries.length}개 국가 × ${config.pages.length}개 페이지</span>
 </div>
 
 <div class="country-slicer">
-  <span class="slicer-label">🌍 국가:</span>
   ${config.countries.map((c, i) => {
-    const flag = c.name.match(/(\p{Emoji})/u)?.[1] || '';
-    const code = c.name.replace(/\p{Emoji}/gu, '').trim();
+    const flag = flagMap[c.code] || '🌐';
+    const label = labelMap[c.code] || c.code.toUpperCase();
     return `<button class="country-btn${i === 0 ? ' active' : ''}" data-country="${c.code}" onclick="filterCountry('${c.code}', this)">
-      <span class="flag">${flag}</span>${code}
+      <span class="flag">${flag}</span>
+      <span class="code">${label}</span>
     </button>`;
   }).join('')}
 </div>
 
 <div class="grid" id="grid">
   ${config.countries.map((country, ci) => {
-    const flag = country.name.match(/(\p{Emoji})/u)?.[1] || '';
-    const code = country.name.replace(/\p{Emoji}/gu, '').trim();
+    const flag = flagMap[country.code] || '🌐';
+    const label = labelMap[country.code] || country.code.toUpperCase();
     return config.pages.map(page_config => {
       const siteId = `${country.code}-${page_config.id}`;
       const topImg = `screenshots/${siteId}/${latest}-top.png`;
@@ -182,10 +204,10 @@ const html = `<!DOCTYPE html>
       return `
       <div class="card${ci === 0 ? '' : ' hidden'}" data-country="${country.code}">
         <div class="card-header">
-          <span class="country-flag">${flag}</span>
-          <span class="country-code">${code}</span>
-          <span class="site-name">${page_config.name}</span>
-          <a href="https://www.samsung.com/${country.code}${page_config.path}" target="_blank" class="site-url">↗ 방문</a>
+          <span class="card-flag">${flag}</span>
+          <span class="card-country">${label}</span>
+          <span class="card-title">${page_config.name}</span>
+          <a href="https://www.samsung.com/${country.code}${page_config.path}" target="_blank" class="card-link">↗ 방문</a>
         </div>
         <div class="tab-bar">${tabs}</div>
 
@@ -224,7 +246,7 @@ const html = `<!DOCTYPE html>
 </div>
 
 <script>
-const config = ${JSON.stringify(config)};
+const config = ${JSON.stringify({...config, flagMap: flagMap, labelMap: labelMap})};
 const dates = ${JSON.stringify(dates)};
 let currentDate = dates[0] || '';
 
@@ -255,7 +277,7 @@ function changeDate(date) {
           if (b.href.includes('-gnb-hover.png')) b.href = 'screenshots/' + siteId + '/' + date + '-gnb-hover.png';
         });
         card.querySelectorAll('.img-label').forEach(lbl => {
-          lbl.textContent = lbl.textContent.replace(/\\d{4}-\\d{2}-\\d{2}/, date);
+          lbl.textContent = lbl.textContent.replace(/\d{4}-\d{2}-\d{2}/, date);
         });
       }
     });
@@ -275,8 +297,10 @@ function openModal(siteId, type) {
   const pageId = parts.slice(1).join('-');
   const country = config.countries.find(c => c.code === countryCode);
   const page = config.pages.find(p => p.id === pageId);
+  const flag = config.flagMap[countryCode] || '';
+  const label = config.labelMap[countryCode] || countryCode;
 
-  document.getElementById('modalTitle').textContent = (country ? country.name : countryCode) + ' · ' + (page ? page.name : pageId);
+  document.getElementById('modalTitle').textContent = flag + ' ' + label + ' · ' + (page ? page.name : pageId);
 
   const types = [
     { key: 'top', label: '🖥️ 상단 뷰' },
@@ -316,4 +340,4 @@ function closeModal(e) {
 
 fs.mkdirSync('docs', { recursive: true });
 fs.writeFileSync(path.join('docs', 'index.html'), html);
-console.log('Dashboard generated: docs/index.html');
+console.log('Dashboard generated!');
