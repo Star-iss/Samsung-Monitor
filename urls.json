@@ -1,33 +1,35 @@
 {
   "countries": [
-    { "code": "de", "name": "🇩🇪 DE", "gnbText": "Computers & Displays" },
-    { "code": "au", "name": "🇦🇺 AU", "gnbText": "Monitors & Storage" },
-    { "code": "be", "name": "🇧🇪 BE", "gnbText": "Computers & Monitors" },
-    { "code": "be_fr", "name": "🇧🇪 BE-FR", "gnbText": "Computers & Monitors" },
-    { "code": "fr", "name": "🇫🇷 FR", "gnbText": "Computers & Screens" },
-    { "code": "it", "name": "🇮🇹 IT", "gnbText": "Computers and Displays" },
-    { "code": "sec", "name": "🇰🇷 KR", "gnbText": "PC/주변기기" },
-    { "code": "nl", "name": "🇳🇱 NL", "gnbText": "Computers & Monitors" },
-    { "code": "no", "name": "🇳🇴 NO", "gnbText": "PCs & Monitors" },
-    { "code": "pt", "name": "🇵🇹 PT", "gnbText": "Monitors & Storage" },
-    { "code": "es", "name": "🇪🇸 ES", "gnbText": "Computing and Displays" },
-    { "code": "se", "name": "🇸🇪 SE", "gnbText": "Computers & Monitors" },
-    { "code": "tr", "name": "🇹🇷 TR", "gnbText": "Monitoring & Storage" },
-    { "code": "uk", "name": "🇬🇧 UK", "gnbText": "Computers & Monitors" },
-    { "code": "us", "name": "🇺🇸 US", "gnbText": "Computers & Monitors" }
+    { "code": "de", "name": "Germany", "gnbText": "Computer & Monitore" },
+    { "code": "au", "name": "Australia", "gnbText": "Monitors & Storage" },
+    { "code": "be", "name": "Belgium", "gnbText": "Computers & Monitoren" },
+    { "code": "be_fr", "name": "Belgium (FR)", "gnbText": "Ordinateurs et écrans" },
+    { "code": "fr", "name": "France", "gnbText": "Ordinateurs et écrans" },
+    { "code": "it", "name": "Italy", "gnbText": "Computer e monitor" },
+    { "code": "sec", "name": "Korea", "gnbText": "PC/주변기기" },
+    { "code": "nl", "name": "Netherlands", "gnbText": "Computers & Monitoren" },
+    { "code": "no", "name": "Norway", "gnbText": "PC-er og skjermer" },
+    { "code": "pt", "name": "Portugal", "gnbText": "Monitores e armazenamento" },
+    { "code": "es", "name": "Spain", "gnbText": "Informática y monitores" },
+    { "code": "se", "name": "Sweden", "gnbText": "Datorer & Bildskärmar" },
+    { "code": "tr", "name": "Turkey", "gnbText": "Bilgisayar & Monitör" },
+    { "code": "uk", "name": "United Kingdom", "gnbText": "Computers & Monitors" },
+    { "code": "us", "name": "United States", "gnbText": "Computers & Monitors" }
   ],
   "pages": [
     {
       "name": "Homepage",
       "path": "/",
       "id": "home",
-      "gnbHover": true
+      "gnbHover": true,
+      "captureFullPage": false
     },
     {
       "name": "Monitors",
       "path": "/monitors/all-monitors/",
       "id": "monitors",
-      "gnbHover": false
+      "gnbHover": false,
+      "captureFullPage": true
     }
   ],
   "schedule": "0 9 * * *"
