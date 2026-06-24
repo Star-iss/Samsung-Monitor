@@ -62,7 +62,20 @@ async function captureGNBHover(page, dir, gnbText) {
   }
 }
 
+// Scroll-triggered Animation + lazy load 완전 대응 스크롤
 async function fullScroll(page) {
+  // 1단계: 모든 애니메이션 CSS 비활성화 (스크롤 전에 미리)
+  await page.addStyleTag({
+    content: `
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-delay: 0ms !important;
+        transition-duration: 0.01ms !important;
+        transition-delay: 0ms !important;
+      }
+    `
+  });
+
   let previousHeight = 0;
   let attempts = 0;
 
@@ -71,27 +84,50 @@ async function fullScroll(page) {
     const viewportHeight = await page.evaluate(() => window.innerHeight);
     let pos = 0;
 
+    // 2단계: 천천히 스크롤하며 scroll-trigger 이벤트 발동
     while (pos < currentHeight) {
       await page.evaluate((y) => window.scrollTo(0, y), pos);
-      try { await page.waitForLoadState('networkidle', { timeout: 6000 }); } catch {}
-      await page.waitForTimeout(1000);
+      try { await page.waitForLoadState('networkidle', { timeout: 4000 }); } catch {}
+      await page.waitForTimeout(800);
+
+      // 3단계: 강화된 lazy load 처리
       await page.evaluate(() => {
-        document.querySelectorAll('img').forEach(img => {
+        // 일반 lazy img
+        document.querySelectorAll('img[loading="lazy"], img[data-src], img[data-lazy-src], img[data-lazysrc]').forEach(img => {
           img.removeAttribute('loading');
           if (img.dataset.src) img.src = img.dataset.src;
           if (img.dataset.lazySrc) img.src = img.dataset.lazySrc;
+          if (img.dataset.lazysrc) img.src = img.dataset.lazysrc;
         });
+
+        // picture > source lazy
+        document.querySelectorAll('source[data-srcset], source[data-lazy-srcset]').forEach(src => {
+          if (src.dataset.srcset) src.srcset = src.dataset.srcset;
+          if (src.dataset.lazySrcset) src.srcset = src.dataset.lazySrcset;
+        });
+
+        // background-image lazy (공통 패턴)
+        document.querySelectorAll('[data-bg], [data-background]').forEach(el => {
+          if (el.dataset.bg) el.style.backgroundImage = `url(${el.dataset.bg})`;
+          if (el.dataset.background) el.style.backgroundImage = `url(${el.dataset.background})`;
+        });
+
+        // Intersection Observer 강제 트리거 (스크롤 이벤트 발사)
+        window.dispatchEvent(new Event('scroll'));
+        window.dispatchEvent(new Event('resize'));
       });
-      pos += Math.floor(viewportHeight * 0.7);
+
+      pos += Math.floor(viewportHeight * 0.6); // 더 세밀하게 스크롤
     }
 
-    await page.waitForTimeout(5000);
+    await page.waitForTimeout(4000);
     const newHeight = await page.evaluate(() => document.body.scrollHeight);
     if (newHeight === previousHeight) break;
     previousHeight = newHeight;
     attempts++;
   }
 
+  // 맨 위로 복귀 후 안정화
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(3000);
 }
@@ -111,17 +147,31 @@ async function captureSite(context, country, page_config) {
     await acceptCookies(page);
     await page.waitForTimeout(2000);
 
+    // 상단 뷰 캡처
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(1000);
     await page.screenshot({ path: path.join(dir, `${today}-top.png`), fullPage: false });
 
+    // GNB Hover 캡처 (Homepage만)
     if (page_config.gnbHover && country.gnbText) {
       await captureGNBHover(page, dir, country.gnbText);
     }
 
+    // 전체 스크롤 (lazy load + scroll animation 트리거)
     await page.mouse.move(68, 177);
     await page.waitForTimeout(1000);
-
     await fullScroll(page);
-    await page.screenshot({ path: path.join(dir, `${today}-full.png`), fullPage: true });
+
+    // Monitors 페이지는 전체 스크린샷 추가 캡처
+    if (page_config.captureFullPage) {
+      await page.screenshot({ path: path.join(dir, `${today}-full.png`), fullPage: true });
+      console.log(`    Full page captured`);
+    }
+
+    // Homepage도 full 저장 (기존 유지)
+    if (!page_config.captureFullPage) {
+      await page.screenshot({ path: path.join(dir, `${today}-full.png`), fullPage: true });
+    }
 
     console.log(`    ✅ Done`);
     return { siteId, country: country.code, page: page_config.id, url, date: today, success: true };
@@ -163,7 +213,6 @@ async function main() {
   const metaDir = path.join('docs', 'meta');
   fs.mkdirSync(metaDir, { recursive: true });
 
-  // 기존 오늘 결과와 병합 (병렬 실행 시 다른 국가 결과 유지)
   const todayMetaPath = path.join(metaDir, `${today}.json`);
   let existing = [];
   if (fs.existsSync(todayMetaPath)) {
