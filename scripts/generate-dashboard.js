@@ -8,7 +8,7 @@ const indexPath = path.join(metaDir, 'index.json');
 const dates = fs.existsSync(indexPath) ? JSON.parse(fs.readFileSync(indexPath, 'utf8')) : [];
 const latest = dates[0] || null;
 
-// 국가 코드별 국기 이모지 직접 매핑
+// 국가 코드별 국기 이모지
 const flagMap = {
   de: '🇩🇪', au: '🇦🇺', be: '🇧🇪', be_fr: '🇧🇪',
   fr: '🇫🇷', it: '🇮🇹', sec: '🇰🇷', nl: '🇳🇱',
@@ -16,11 +16,23 @@ const flagMap = {
   tr: '🇹🇷', uk: '🇬🇧', us: '🇺🇸'
 };
 
+// 풀네임으로 변경
 const labelMap = {
-  de: 'DE', au: 'AU', be: 'BE', be_fr: 'BE-FR',
-  fr: 'FR', it: 'IT', sec: 'KR', nl: 'NL',
-  no: 'NO', pt: 'PT', es: 'ES', se: 'SE',
-  tr: 'TR', uk: 'UK', us: 'US'
+  de: 'Germany',
+  au: 'Australia',
+  be: 'Belgium',
+  be_fr: 'Belgium (FR)',
+  fr: 'France',
+  it: 'Italy',
+  sec: 'Korea',
+  nl: 'Netherlands',
+  no: 'Norway',
+  pt: 'Portugal',
+  es: 'Spain',
+  se: 'Sweden',
+  tr: 'Turkey',
+  uk: 'United Kingdom',
+  us: 'United States'
 };
 
 const html = `<!DOCTYPE html>
@@ -57,7 +69,7 @@ const html = `<!DOCTYPE html>
     display: flex; gap: 0; align-items: stretch; overflow-x: auto;
   }
   .country-btn {
-    padding: 10px 16px; border: none; border-bottom: 3px solid transparent;
+    padding: 10px 14px; border: none; border-bottom: 3px solid transparent;
     background: none; cursor: pointer; color: #666;
     transition: all 0.15s; display: flex; align-items: center; gap: 6px;
     white-space: nowrap; font-size: 0.83rem;
@@ -65,7 +77,7 @@ const html = `<!DOCTYPE html>
   .country-btn:hover { color: #1428A0; background: #f5f7ff; }
   .country-btn.active { color: #1428A0; border-bottom-color: #1428A0; font-weight: 700; background: #f0f3ff; }
   .country-btn .flag { font-size: 1.3rem; line-height: 1; }
-  .country-btn .code { font-size: 0.78rem; font-weight: 600; }
+  .country-btn .label { font-size: 0.78rem; font-weight: 600; }
 
   /* 그리드 */
   .grid {
@@ -178,10 +190,10 @@ const html = `<!DOCTYPE html>
 <div class="country-slicer">
   ${config.countries.map((c, i) => {
     const flag = flagMap[c.code] || '🌐';
-    const label = labelMap[c.code] || c.code.toUpperCase();
+    const label = labelMap[c.code] || c.name;
     return `<button class="country-btn${i === 0 ? ' active' : ''}" data-country="${c.code}" onclick="filterCountry('${c.code}', this)">
       <span class="flag">${flag}</span>
-      <span class="code">${label}</span>
+      <span class="label">${label}</span>
     </button>`;
   }).join('')}
 </div>
@@ -189,16 +201,25 @@ const html = `<!DOCTYPE html>
 <div class="grid" id="grid">
   ${config.countries.map((country, ci) => {
     const flag = flagMap[country.code] || '🌐';
-    const label = labelMap[country.code] || country.code.toUpperCase();
+    const label = labelMap[country.code] || country.name;
     return config.pages.map(page_config => {
       const siteId = `${country.code}-${page_config.id}`;
       const topImg = `screenshots/${siteId}/${latest}-top.png`;
       const gnbImg = `screenshots/${siteId}/${latest}-gnb-hover.png`;
       const fullImg = `screenshots/${siteId}/${latest}-full.png`;
 
+      // 탭 구성: Homepage = 상단뷰 + GNB Hover / Monitors = 상단뷰 + 전체페이지
       const tabs = [
         `<button class="tab active" onclick="switchTab(this, '${siteId}', 'top')">🖥️ 상단 뷰</button>`,
         page_config.gnbHover ? `<button class="tab" onclick="switchTab(this, '${siteId}', 'gnb')">📂 GNB Hover</button>` : '',
+        page_config.captureFullPage ? `<button class="tab" onclick="switchTab(this, '${siteId}', 'full')">📄 전체 페이지</button>` : '',
+      ].filter(Boolean).join('');
+
+      // footer 배지
+      const badges = [
+        `<a href="${topImg}" target="_blank" class="badge">🖼️ 상단 원본</a>`,
+        page_config.gnbHover ? `<a href="${gnbImg}" target="_blank" class="badge">📂 GNB 원본</a>` : '',
+        `<a href="${fullImg}" target="_blank" class="badge">📄 전체 페이지</a>`,
       ].filter(Boolean).join('');
 
       return `
@@ -226,11 +247,15 @@ const html = `<!DOCTYPE html>
           </div>
         </div>` : ''}
 
-        <div class="card-footer">
-          <a href="${fullImg}" target="_blank" class="badge">📄 전체 페이지</a>
-          <a href="${topImg}" target="_blank" class="badge">🖼️ 상단 원본</a>
-          ${page_config.gnbHover ? `<a href="${gnbImg}" target="_blank" class="badge">📂 GNB 원본</a>` : ''}
-        </div>
+        ${page_config.captureFullPage ? `
+        <div class="tab-content" id="${siteId}-full">
+          <div class="img-wrap" onclick="openModal('${siteId}', 'full')">
+            <div class="img-label">전체 페이지 · ${latest}</div>
+            <img src="${fullImg}" onerror="this.parentElement.innerHTML='<p class=no-img>캡처 없음</p>'"/>
+          </div>
+        </div>` : ''}
+
+        <div class="card-footer">${badges}</div>
       </div>`;
     }).join('');
   }).join('')}
@@ -269,6 +294,10 @@ function changeDate(date) {
         const gnbEl = document.querySelector('#' + siteId + '-gnb img');
         if (gnbEl) gnbEl.src = 'screenshots/' + siteId + '/' + date + '-gnb-hover.png';
       }
+      if (page.captureFullPage) {
+        const fullEl = document.querySelector('#' + siteId + '-full img');
+        if (fullEl) fullEl.src = 'screenshots/' + siteId + '/' + date + '-full.png';
+      }
       const card = topEl ? topEl.closest('.card') : null;
       if (card) {
         card.querySelectorAll('.badge').forEach(b => {
@@ -288,7 +317,8 @@ function switchTab(btn, siteId, tab) {
   btn.closest('.card').querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
   btn.closest('.card').querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  document.getElementById(siteId + '-' + tab).classList.add('active');
+  const el = document.getElementById(siteId + '-' + tab);
+  if (el) el.classList.add('active');
 }
 
 function openModal(siteId, type) {
