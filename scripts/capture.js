@@ -37,31 +37,45 @@ async function acceptCookies(page) {
   return false;
 }
 
-async function captureGNBHover(page, dir) {
+async function captureGNBHover(page, dir, countryCode) {
   try {
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(1000);
 
-    const target = await page.evaluateHandle(() => {
-      const allEls = Array.from(document.querySelectorAll('[an-la]'));
-      return allEls.find(el => {
-        const anLa = (el.getAttribute('an-la') || '').toLowerCase();
-        return anLa.includes('computing and displays') ||
-               anLa.includes('computers and displays') ||
-               anLa.includes('l0_6_');
-      });
-    });
+    let el = null;
 
-    const el = target.asElement();
+    if (countryCode === 'sec') {
+      // 한국: data-texten="pc" 속성으로 찾기
+      const target = await page.evaluateHandle(() => {
+        return document.querySelector('a[data-texten="pc"], button[data-texten="pc"]');
+      });
+      el = target.asElement();
+      if (el) console.log(`    GNB found via data-texten="pc" (KR)`);
+    } else {
+      // 다른 국가: an-la 속성으로 찾기
+      const target = await page.evaluateHandle(() => {
+        const allEls = Array.from(document.querySelectorAll('[an-la]'));
+        return allEls.find(el => {
+          const anLa = (el.getAttribute('an-la') || '').toLowerCase();
+          return anLa.includes('computing and displays') ||
+                 anLa.includes('computers and displays') ||
+                 anLa.includes('l0_6_');
+        });
+      });
+      el = target.asElement();
+      if (el) {
+        const anLa = await el.evaluate(e => e.getAttribute('an-la'));
+        console.log(`    GNB found via an-la: "${anLa}"`);
+      }
+    }
+
     if (el) {
-      const anLa = await el.evaluate(e => e.getAttribute('an-la'));
-      console.log(`    GNB found via an-la: "${anLa}"`);
       await el.hover();
       await page.waitForTimeout(2000);
       await page.screenshot({ path: path.join(dir, `${today}-gnb-hover.png`), fullPage: false });
       console.log(`    GNB hover captured`);
     } else {
-      console.log(`    GNB not found via an-la`);
+      console.log(`    GNB not found for [${countryCode}]`);
     }
   } catch (err) {
     console.log(`    GNB hover failed: ${err.message}`);
@@ -120,7 +134,7 @@ async function captureSite(context, country, page_config) {
     await page.screenshot({ path: path.join(dir, `${today}-top.png`), fullPage: false });
 
     if (page_config.gnbHover) {
-      await captureGNBHover(page, dir);
+      await captureGNBHover(page, dir, country.code);
     }
 
     await page.mouse.move(68, 177);
@@ -165,7 +179,6 @@ async function main() {
     await browser.close();
   }
 
-  // 메타데이터만 저장 (index.json은 deploy job에서 관리)
   const metaDir = path.join('docs', 'meta');
   fs.mkdirSync(metaDir, { recursive: true });
 
