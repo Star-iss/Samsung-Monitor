@@ -42,7 +42,6 @@ async function captureGNBHover(page, dir) {
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(1000);
 
-    // an-la 속성에 "computing and displays" 또는 "L0_6_" 패턴으로 찾기
     const target = await page.evaluateHandle(() => {
       const allEls = Array.from(document.querySelectorAll('[an-la]'));
       return allEls.find(el => {
@@ -61,12 +60,9 @@ async function captureGNBHover(page, dir) {
       await page.waitForTimeout(2000);
       await page.screenshot({ path: path.join(dir, `${today}-gnb-hover.png`), fullPage: false });
       console.log(`    GNB hover captured`);
-      return;
+    } else {
+      console.log(`    GNB not found via an-la`);
     }
-
-    // fallback: gnbText 텍스트 매칭
-    console.log(`    an-la not found, trying text match...`);
-
   } catch (err) {
     console.log(`    GNB hover failed: ${err.message}`);
   }
@@ -169,6 +165,7 @@ async function main() {
     await browser.close();
   }
 
+  // 메타데이터만 저장 (index.json은 deploy job에서 관리)
   const metaDir = path.join('docs', 'meta');
   fs.mkdirSync(metaDir, { recursive: true });
 
@@ -179,10 +176,6 @@ async function main() {
   }
   const merged = [...existing.filter(r => !results.find(nr => nr.siteId === r.siteId)), ...results];
   fs.writeFileSync(todayMetaPath, JSON.stringify(merged, null, 2));
-
-  const indexPath = path.join(metaDir, 'index.json');
-  let index = fs.existsSync(indexPath) ? JSON.parse(fs.readFileSync(indexPath, 'utf8')) : [];
-  if (!index.includes(today)) { index.unshift(today); fs.writeFileSync(indexPath, JSON.stringify(index, null, 2)); }
 
   console.log('\n📊 Summary:');
   results.forEach(r => console.log(`  ${r.success ? '✅' : '❌'} [${r.country}] ${r.page}`));
