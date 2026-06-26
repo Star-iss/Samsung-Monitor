@@ -1,0 +1,18 @@
+[
+  {
+    "siteId": "au-home",
+    "country": "au",
+    "page": "home",
+    "url": "https://www.samsung.com/au/",
+    "date": "2026-06-26",
+    "success": true
+  },
+  {
+    "siteId": "au-monitors",
+    "country": "au",
+    "page": "monitors",
+    "url": "https://www.samsung.com/au/monitors/all-monitors/",
+    "date": "2026-06-26",
+    "success": true
+  }
+]
