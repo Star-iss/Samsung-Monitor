@@ -45,14 +45,12 @@ async function captureGNBHover(page, dir, countryCode) {
     let el = null;
 
     if (countryCode === 'sec') {
-      // 한국: data-texten="pc" 속성으로 찾기
       const target = await page.evaluateHandle(() => {
         return document.querySelector('a[data-texten="pc"], button[data-texten="pc"]');
       });
       el = target.asElement();
       if (el) console.log(`    GNB found via data-texten="pc" (KR)`);
     } else {
-      // 다른 국가: an-la 속성으로 찾기
       const target = await page.evaluateHandle(() => {
         const allEls = Array.from(document.querySelectorAll('[an-la]'));
         return allEls.find(el => {
@@ -179,16 +177,14 @@ async function main() {
     await browser.close();
   }
 
+  // 메타데이터 저장 - 국가별로 별도 파일에 저장해서 충돌 방지
   const metaDir = path.join('docs', 'meta');
   fs.mkdirSync(metaDir, { recursive: true });
 
-  const todayMetaPath = path.join(metaDir, `${today}.json`);
-  let existing = [];
-  if (fs.existsSync(todayMetaPath)) {
-    existing = JSON.parse(fs.readFileSync(todayMetaPath, 'utf8'));
-  }
-  const merged = [...existing.filter(r => !results.find(nr => nr.siteId === r.siteId)), ...results];
-  fs.writeFileSync(todayMetaPath, JSON.stringify(merged, null, 2));
+  // 국가 코드별 별도 파일로 저장 (충돌 방지)
+  const countryCode = targetCountry || 'all';
+  const metaPath = path.join(metaDir, `${today}-${countryCode}.json`);
+  fs.writeFileSync(metaPath, JSON.stringify(results, null, 2));
 
   console.log('\n📊 Summary:');
   results.forEach(r => console.log(`  ${r.success ? '✅' : '❌'} [${r.country}] ${r.page}`));
