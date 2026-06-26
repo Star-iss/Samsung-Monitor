@@ -42,15 +42,27 @@ async function captureGNBHover(page, dir, countryCode) {
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(1000);
 
+    // 한국 사이트의 appWebMask 레이어 제거
+    await page.evaluate(() => {
+      const mask = document.getElementById('appWebMask');
+      if (mask) {
+        mask.style.display = 'none';
+        mask.style.pointerEvents = 'none';
+        console.log('appWebMask removed');
+      }
+    });
+
     let el = null;
 
     if (countryCode === 'sec') {
+      // 한국: data-texten="pc" 속성으로 찾기
       const target = await page.evaluateHandle(() => {
         return document.querySelector('a[data-texten="pc"], button[data-texten="pc"]');
       });
       el = target.asElement();
       if (el) console.log(`    GNB found via data-texten="pc" (KR)`);
     } else {
+      // 다른 국가: an-la 속성으로 찾기
       const target = await page.evaluateHandle(() => {
         const allEls = Array.from(document.querySelectorAll('[an-la]'));
         return allEls.find(el => {
@@ -68,7 +80,11 @@ async function captureGNBHover(page, dir, countryCode) {
     }
 
     if (el) {
-      await el.hover();
+      // JavaScript로 직접 hover 이벤트 발생 (pointer intercept 우회)
+      await el.evaluate(node => {
+        node.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+        node.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+      });
       await page.waitForTimeout(2000);
       await page.screenshot({ path: path.join(dir, `${today}-gnb-hover.png`), fullPage: false });
       console.log(`    GNB hover captured`);
@@ -177,11 +193,9 @@ async function main() {
     await browser.close();
   }
 
-  // 메타데이터 저장 - 국가별로 별도 파일에 저장해서 충돌 방지
   const metaDir = path.join('docs', 'meta');
   fs.mkdirSync(metaDir, { recursive: true });
 
-  // 국가 코드별 별도 파일로 저장 (충돌 방지)
   const countryCode = targetCountry || 'all';
   const metaPath = path.join(metaDir, `${today}-${countryCode}.json`);
   fs.writeFileSync(metaPath, JSON.stringify(results, null, 2));
