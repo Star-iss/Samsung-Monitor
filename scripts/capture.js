@@ -48,21 +48,18 @@ async function captureGNBHover(page, dir, countryCode) {
       if (mask) {
         mask.style.display = 'none';
         mask.style.pointerEvents = 'none';
-        console.log('appWebMask removed');
       }
     });
 
     let el = null;
 
     if (countryCode === 'sec') {
-      // 한국: data-texten="pc" 속성으로 찾기
       const target = await page.evaluateHandle(() => {
         return document.querySelector('a[data-texten="pc"], button[data-texten="pc"]');
       });
       el = target.asElement();
       if (el) console.log(`    GNB found via data-texten="pc" (KR)`);
     } else {
-      // 다른 국가: an-la 속성으로 찾기
       const target = await page.evaluateHandle(() => {
         const allEls = Array.from(document.querySelectorAll('[an-la]'));
         return allEls.find(el => {
@@ -80,7 +77,6 @@ async function captureGNBHover(page, dir, countryCode) {
     }
 
     if (el) {
-      // JavaScript로 직접 hover 이벤트 발생 (pointer intercept 우회)
       await el.evaluate(node => {
         node.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
         node.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
@@ -100,34 +96,54 @@ async function fullScroll(page) {
   let previousHeight = 0;
   let attempts = 0;
 
-  while (attempts < 20) {
+  while (attempts < 30) {
     const currentHeight = await page.evaluate(() => document.body.scrollHeight);
     const viewportHeight = await page.evaluate(() => window.innerHeight);
     let pos = 0;
 
     while (pos < currentHeight) {
       await page.evaluate((y) => window.scrollTo(0, y), pos);
-      try { await page.waitForLoadState('networkidle', { timeout: 6000 }); } catch {}
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(800);
+
+      // lazy load 강제 해제
       await page.evaluate(() => {
         document.querySelectorAll('img').forEach(img => {
           img.removeAttribute('loading');
           if (img.dataset.src) img.src = img.dataset.src;
           if (img.dataset.lazySrc) img.src = img.dataset.lazySrc;
+          if (img.dataset.originalSrc) img.src = img.dataset.originalSrc;
         });
       });
-      pos += Math.floor(viewportHeight * 0.7);
+
+      pos += Math.floor(viewportHeight * 0.8);
     }
 
-    await page.waitForTimeout(5000);
+    // 맨 아래까지 스크롤 후 이미지 로딩 대기
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await page.waitForTimeout(3000);
+
+    // 이미지가 모두 로딩될 때까지 대기 (최대 15초)
+    await page.evaluate(async () => {
+      const imgs = Array.from(document.querySelectorAll('img'));
+      await Promise.all(imgs.map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(resolve => {
+          img.onload = resolve;
+          img.onerror = resolve;
+          setTimeout(resolve, 15000);
+        });
+      }));
+    });
+
     const newHeight = await page.evaluate(() => document.body.scrollHeight);
+    console.log(`    Scroll ${attempts + 1}: ${previousHeight} → ${newHeight}px`);
     if (newHeight === previousHeight) break;
     previousHeight = newHeight;
     attempts++;
   }
 
   await page.evaluate(() => window.scrollTo(0, 0));
-  await page.waitForTimeout(3000);
+  await page.waitForTimeout(2000);
 }
 
 async function captureSite(context, country, page_config) {
@@ -140,22 +156,26 @@ async function captureSite(context, country, page_config) {
   try {
     console.log(`  [${country.code}] ${page_config.name}`);
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
-    await page.waitForTimeout(4000);
+    await page.waitForTimeout(5000);
 
     await acceptCookies(page);
     await page.waitForTimeout(2000);
 
+    // 상단 뷰
     await page.screenshot({ path: path.join(dir, `${today}-top.png`), fullPage: false });
 
+    // GNB Hover (홈페이지만)
     if (page_config.gnbHover) {
       await captureGNBHover(page, dir, country.code);
+      await page.mouse.move(68, 177);
+      await page.waitForTimeout(1000);
     }
 
-    await page.mouse.move(68, 177);
-    await page.waitForTimeout(1000);
-
+    // 전체 페이지
+    console.log(`    Scrolling...`);
     await fullScroll(page);
     await page.screenshot({ path: path.join(dir, `${today}-full.png`), fullPage: true });
+    console.log(`    Full screenshot done`);
 
     console.log(`    ✅ Done`);
     return { siteId, country: country.code, page: page_config.id, url, date: today, success: true };
