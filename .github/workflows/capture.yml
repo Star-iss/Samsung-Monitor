@@ -21,8 +21,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -62,11 +60,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
       - name: Download all screenshots
         uses: actions/download-artifact@v4
         with:
@@ -81,6 +74,11 @@ jobs:
           path: docs/meta/
           merge-multiple: true
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Merge meta files and update index
         run: |
           TODAY=$(date +%Y-%m-%d)
@@ -89,27 +87,30 @@ jobs:
             const path = require('path');
             const metaDir = 'docs/meta';
 
-            // 오늘 날짜의 국가별 파일들을 합쳐서 하나로 만들기
-            const files = fs.readdirSync(metaDir).filter(f => f.startsWith('$TODAY-') && f.endsWith('.json'));
+            // 오늘 날짜의 국가별 파일들을 합쳐서 하나로
+            const files = fs.readdirSync(metaDir).filter(f => f.startsWith('${TODAY}-') && f.endsWith('.json'));
+            console.log('Found country meta files:', files);
             let merged = [];
             for (const f of files) {
               try {
                 const data = JSON.parse(fs.readFileSync(path.join(metaDir, f), 'utf8'));
                 merged = [...merged, ...data];
-              } catch(e) { console.log('Skip invalid file:', f); }
+              } catch(e) { console.log('Skip invalid file:', f, e.message); }
             }
             if (merged.length > 0) {
-              fs.writeFileSync(path.join(metaDir, '$TODAY.json'), JSON.stringify(merged, null, 2));
-              console.log('Merged', files.length, 'files into $TODAY.json');
+              fs.writeFileSync(path.join(metaDir, '${TODAY}.json'), JSON.stringify(merged, null, 2));
+              console.log('Merged', files.length, 'files →', '${TODAY}.json');
+            } else {
+              console.log('No country meta files found for today');
             }
 
             // index.json 업데이트
             const indexPath = path.join(metaDir, 'index.json');
             let idx = fs.existsSync(indexPath) ? JSON.parse(fs.readFileSync(indexPath, 'utf8')) : [];
-            if (!idx.includes('$TODAY')) { idx.unshift('$TODAY'); }
+            if (!idx.includes('${TODAY}')) { idx.unshift('${TODAY}'); }
             idx.sort((a, b) => b.localeCompare(a));
             fs.writeFileSync(indexPath, JSON.stringify(idx, null, 2));
-            console.log('index.json updated with', idx.length, 'dates');
+            console.log('index.json updated:', idx.slice(0, 5));
           "
 
       - name: Install dependencies
