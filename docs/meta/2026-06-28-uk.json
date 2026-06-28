@@ -1,0 +1,18 @@
+[
+  {
+    "siteId": "uk-home",
+    "country": "uk",
+    "page": "home",
+    "url": "https://www.samsung.com/uk/",
+    "date": "2026-06-28",
+    "success": true
+  },
+  {
+    "siteId": "uk-monitors",
+    "country": "uk",
+    "page": "monitors",
+    "url": "https://www.samsung.com/uk/monitors/all-monitors/",
+    "date": "2026-06-28",
+    "success": true
+  }
+]
