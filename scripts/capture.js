@@ -92,7 +92,7 @@ async function captureGNBHover(page, dir, countryCode) {
 }
 
 async function fullScroll(page) {
-  // CSS 애니메이션/트랜지션 강제 비활성화 (레이아웃은 유지)
+  // CSS 애니메이션/트랜지션 강제 비활성화
   await page.evaluate(() => {
     const style = document.createElement('style');
     style.textContent = `
@@ -104,23 +104,9 @@ async function fullScroll(page) {
       }
     `;
     document.head.appendChild(style);
-
-    // IntersectionObserver 기반 lazy load 강제 트리거
-    if (window.IntersectionObserver) {
-      const originalObserver = window.IntersectionObserver;
-      window.IntersectionObserver = function(callback, options) {
-        const observer = new originalObserver(callback, options);
-        const originalObserve = observer.observe.bind(observer);
-        observer.observe = (target) => {
-          callback([{ isIntersecting: true, target }], observer);
-          originalObserve(target);
-        };
-        return observer;
-      };
-    }
   });
 
-  // 스크롤로 lazy load 트리거
+  // 스크롤하며 lazy load 트리거 + 이미지 로딩 대기
   let previousHeight = 0;
   let attempts = 0;
 
@@ -131,7 +117,23 @@ async function fullScroll(page) {
 
     while (pos < currentHeight) {
       await page.evaluate((y) => window.scrollTo(0, y), pos);
-      await page.waitForTimeout(500); // JS 렌더링 대기
+
+      // 뷰포트 내 이미지 로딩 대기 (최대 3초)
+      await page.evaluate(() => {
+        const imgs = Array.from(document.querySelectorAll('img'));
+        return Promise.all(
+          imgs.map(img => {
+            if (img.complete) return Promise.resolve();
+            return new Promise(resolve => {
+              img.addEventListener('load', resolve, { once: true });
+              img.addEventListener('error', resolve, { once: true });
+              setTimeout(resolve, 3000);
+            });
+          })
+        );
+      });
+
+      await page.waitForTimeout(500);
       pos += Math.floor(viewportHeight * 0.8);
     }
 
@@ -144,7 +146,7 @@ async function fullScroll(page) {
   }
 
   await page.evaluate(() => window.scrollTo(0, 0));
-  await page.waitForTimeout(1500);
+  await page.waitForTimeout(2000);
 }
 
 async function captureSite(context, country, page_config) {
