@@ -195,11 +195,10 @@ const html = `<!DOCTYPE html>
 </div>
 
 <div class="country-slicer">
-  <button class="country-btn all active" onclick="filterCountry('all', this)">🌍 전체</button>
   ${config.countries.map(c => {
     const flag = flagMap[c.code] || '🌐';
     const label = labelMap[c.code] || c.name;
-    return `<button class="country-btn" data-country="${c.code}" onclick="filterCountry('${c.code}', this)">${flag} ${label}</button>`;
+    return `<button class="country-btn${c.code === config.countries[0].code ? ' active' : ''}" data-country="${c.code}" onclick="filterCountry('${c.code}', this)">${flag} ${label}</button>`;
   }).join('')}
 </div>
 
@@ -278,7 +277,16 @@ const html = `<!DOCTYPE html>
 const config = ${JSON.stringify({...config, flagMap, labelMap})};
 const dates = ${JSON.stringify(dates)};
 let currentDate = dates[0] || '';
-let currentCountry = 'all';
+let currentCountry = config.countries[0]?.code || '';
+
+// 초기 로드 시 첫 번째 국가만 표시
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.card').forEach(card => {
+    if (card.dataset.country !== currentCountry) {
+      card.classList.add('hidden');
+    }
+  });
+});
 
 function filterCountry(code, btn) {
   currentCountry = code;
@@ -293,71 +301,54 @@ function filterCountry(code, btn) {
   });
 }
 
-// ✅ 수정된 changeDate: 날짜 라벨 + 부드러운 opacity 전환
 function changeDate(date) {
   currentDate = date;
   config.countries.forEach(country => {
     config.pages.forEach(page => {
       const siteId = country.code + '-' + page.id;
 
-      // 상단 뷰
-      const topWrap = document.querySelector('#' + siteId + '-top .img-wrap');
-      if (topWrap) {
-        const topImg = topWrap.querySelector('img');
-        if (topImg) {
-          topImg.style.opacity = '0.35';
-          topImg.src = 'screenshots/' + siteId + '/' + date + '-top.png';
-          topImg.onload = () => { topImg.style.opacity = '1'; };
-          topImg.onerror = () => {
-            topImg.style.opacity = '1';
-            topWrap.innerHTML = '<p class=no-img>캡처 없음</p>';
-          };
-        }
-        const lbl = topWrap.querySelector('.img-label');
-        if (lbl) lbl.textContent = date;
+      function swapImg(wrap, newSrc, labelText) {
+        if (!wrap) return;
+        const img = wrap.querySelector('img');
+        const lbl = wrap.querySelector('.img-label');
+        // ✅ 라벨 즉시 업데이트
+        if (lbl) lbl.textContent = labelText;
+        if (!img) return;
+        // ✅ 프리로드 후 교체 (깜빡임 없이 빠르게)
+        const preloader = new Image();
+        preloader.onload = () => { img.src = newSrc; };
+        preloader.onerror = () => { wrap.innerHTML = '<p class=no-img>캡처 없음</p>'; };
+        preloader.src = newSrc;
       }
+
+      // 상단 뷰
+      swapImg(
+        document.querySelector('#' + siteId + '-top .img-wrap'),
+        'screenshots/' + siteId + '/' + date + '-top.png',
+        date
+      );
 
       // GNB Hover
       if (page.gnbHover) {
-        const gnbWrap = document.querySelector('#' + siteId + '-gnb .img-wrap');
-        if (gnbWrap) {
-          const gnbImg = gnbWrap.querySelector('img');
-          if (gnbImg) {
-            gnbImg.style.opacity = '0.35';
-            gnbImg.src = 'screenshots/' + siteId + '/' + date + '-gnb-hover.png';
-            gnbImg.onload = () => { gnbImg.style.opacity = '1'; };
-            gnbImg.onerror = () => {
-              gnbImg.style.opacity = '1';
-              gnbWrap.innerHTML = '<p class=no-img>캡처 없음</p>';
-            };
-          }
-          const lbl = gnbWrap.querySelector('.img-label');
-          if (lbl) lbl.textContent = 'GNB Hover · ' + date;
-        }
+        swapImg(
+          document.querySelector('#' + siteId + '-gnb .img-wrap'),
+          'screenshots/' + siteId + '/' + date + '-gnb-hover.png',
+          'GNB Hover · ' + date
+        );
       }
 
       // 전체 페이지
       if (page.captureFullPage) {
-        const fullWrap = document.querySelector('#' + siteId + '-full .img-wrap');
-        if (fullWrap) {
-          const fullImg = fullWrap.querySelector('img');
-          if (fullImg) {
-            fullImg.style.opacity = '0.35';
-            fullImg.src = 'screenshots/' + siteId + '/' + date + '-full.png';
-            fullImg.onload = () => { fullImg.style.opacity = '1'; };
-            fullImg.onerror = () => {
-              fullImg.style.opacity = '1';
-              fullWrap.innerHTML = '<p class=no-img>캡처 없음</p>';
-            };
-          }
-          const lbl = fullWrap.querySelector('.img-label');
-          if (lbl) lbl.textContent = '전체 페이지 · ' + date;
-        }
+        swapImg(
+          document.querySelector('#' + siteId + '-full .img-wrap'),
+          'screenshots/' + siteId + '/' + date + '-full.png',
+          '전체 페이지 · ' + date
+        );
       }
 
       // footer 배지 링크 업데이트
-      const card = document.querySelector('[data-country="' + country.code + '"] #' + siteId + '-top')
-        ? document.querySelector('[data-country="' + country.code + '"]') : null;
+      const card = document.querySelector('[data-country="' + country.code + '"][data-id]') ||
+        document.querySelector('[data-country="' + country.code + '"]');
       if (card) {
         card.querySelectorAll('.badge').forEach(a => {
           if (a.href.includes('-top.png')) {
