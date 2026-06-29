@@ -1,3 +1,4 @@
+'use strict';
 const fs = require('fs');
 const path = require('path');
 
@@ -8,31 +9,19 @@ const indexPath = path.join(metaDir, 'index.json');
 const dates = fs.existsSync(indexPath) ? JSON.parse(fs.readFileSync(indexPath, 'utf8')) : [];
 const latest = dates[0] || null;
 
-// 국가 코드별 국기 이모지
+// 국가 코드 → 국기 이모지
 const flagMap = {
-  de: '🇩🇪', au: '🇦🇺', be: '🇧🇪', be_fr: '🇧🇪',
-  fr: '🇫🇷', it: '🇮🇹', sec: '🇰🇷', nl: '🇳🇱',
-  no: '🇳🇴', pt: '🇵🇹', es: '🇪🇸', se: '🇸🇪',
-  tr: '🇹🇷', uk: '🇬🇧', us: '🇺🇸'
+  de: '🇩🇪', au: '🇦🇺', be: '🇧🇪', be_fr: '🇧🇪', fr: '🇫🇷',
+  it: '🇮🇹', sec: '🇰🇷', nl: '🇳🇱', no: '🇳🇴', pt: '🇵🇹',
+  es: '🇪🇸', se: '🇸🇪', tr: '🇹🇷', uk: '🇬🇧', us: '🇺🇸'
 };
 
-// 풀네임으로 변경
+// 국가 코드 → 표시 이름
 const labelMap = {
-  de: 'Germany',
-  au: 'Australia',
-  be: 'Belgium',
-  be_fr: 'Belgium (FR)',
-  fr: 'France',
-  it: 'Italy',
-  sec: 'Korea',
-  nl: 'Netherlands',
-  no: 'Norway',
-  pt: 'Portugal',
-  es: 'Spain',
-  se: 'Sweden',
-  tr: 'Turkey',
-  uk: 'United Kingdom',
-  us: 'United States'
+  de: 'Germany', au: 'Australia', be: 'Belgium', be_fr: 'Belgium (FR)',
+  fr: 'France', it: 'Italy', sec: 'Korea', nl: 'Netherlands',
+  no: 'Norway', pt: 'Portugal', es: 'Spain', se: 'Sweden',
+  tr: 'Turkey', uk: 'United Kingdom', us: 'United States'
 };
 
 const html = `<!DOCTYPE html>
@@ -43,114 +32,127 @@ const html = `<!DOCTYPE html>
 <title>Samsung Web Monitor</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; color: #222; }
+  body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #222; }
 
   header {
     background: #1428A0; color: white;
-    padding: 18px 32px; display: flex; align-items: center; justify-content: space-between;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    padding: 14px 24px; display: flex; justify-content: space-between; align-items: center;
   }
-  header h1 { font-size: 1.3rem; font-weight: 700; }
-  header .meta { font-size: 0.82rem; opacity: 0.8; }
+  header h1 { font-size: 1.1rem; font-weight: 700; }
+  header .meta { font-size: 0.78rem; opacity: 0.8; margin-top: 2px; }
 
   .toolbar {
-    background: white; padding: 12px 32px;
-    border-bottom: 1px solid #e0e0e0;
-    display: flex; gap: 16px; align-items: center;
+    background: white; padding: 10px 24px;
+    display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid #e0e0e0; font-size: 0.85rem;
   }
-  .toolbar label { font-size: 0.85rem; color: #555; font-weight: 600; }
-  .toolbar select { padding: 6px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.85rem; cursor: pointer; }
-  .toolbar .right { margin-left: auto; font-size: 0.82rem; color: #888; }
+  .toolbar label { color: #555; }
+  .toolbar select {
+    border: 1px solid #ccc; border-radius: 6px;
+    padding: 5px 10px; font-size: 0.85rem; cursor: pointer;
+    background: white;
+  }
+  .toolbar .right { margin-left: auto; color: #888; font-size: 0.78rem; }
 
-  /* 국가 슬라이서 */
   .country-slicer {
-    background: white; padding: 0 32px;
-    border-bottom: 2px solid #e0e0e0;
-    display: flex; gap: 0; align-items: stretch; overflow-x: auto;
+    background: white; padding: 10px 24px;
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    border-bottom: 1px solid #e0e0e0;
   }
   .country-btn {
-    padding: 10px 14px; border: none; border-bottom: 3px solid transparent;
-    background: none; cursor: pointer; color: #666;
-    transition: all 0.15s; display: flex; align-items: center; gap: 6px;
-    white-space: nowrap; font-size: 0.83rem;
+    padding: 5px 14px; border: 1px solid #ddd; border-radius: 20px;
+    background: white; cursor: pointer; font-size: 0.82rem; color: #444;
+    transition: all 0.15s;
   }
-  .country-btn:hover { color: #1428A0; background: #f5f7ff; }
-  .country-btn.active { color: #1428A0; border-bottom-color: #1428A0; font-weight: 700; background: #f0f3ff; }
-  .country-btn .flag { font-size: 1.3rem; line-height: 1; }
-  .country-btn .label { font-size: 0.78rem; font-weight: 600; }
+  .country-btn:hover { border-color: #1428A0; color: #1428A0; }
+  .country-btn.active { background: #1428A0; color: white; border-color: #1428A0; }
 
-  /* 그리드 */
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
-    gap: 20px; padding: 24px 32px;
-    max-width: 1600px; margin: 0 auto;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px; padding: 20px 24px;
   }
 
   .card {
     background: white; border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-    overflow: hidden; transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden;
   }
-  .card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.11); }
   .card.hidden { display: none; }
 
   .card-header {
-    padding: 14px 18px 10px; border-bottom: 1px solid #f0f0f0;
-    display: flex; align-items: center; gap: 8px;
+    padding: 12px 16px; display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid #f0f0f0;
   }
-  .card-flag { font-size: 1.5rem; line-height: 1; }
-  .card-country { background: #1428A0; color: white; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
-  .card-title { font-weight: 700; font-size: 0.95rem; color: #222; }
-  .card-link { font-size: 0.75rem; color: #aaa; margin-left: auto; text-decoration: none; }
-  .card-link:hover { color: #1428A0; }
+  .card-flag { font-size: 1.2rem; }
+  .card-country { font-weight: 700; font-size: 0.88rem; color: #1428A0; }
+  .card-title { font-size: 0.82rem; color: #666; flex: 1; }
+  .card-link {
+    font-size: 0.75rem; color: #1428A0; text-decoration: none;
+    padding: 3px 8px; border: 1px solid #1428A0; border-radius: 12px;
+  }
+  .card-link:hover { background: #1428A0; color: white; }
 
-  .tab-bar { display: flex; border-bottom: 1px solid #eee; background: #fafafa; }
-  .tab {
-    flex: 1; padding: 9px; border: none; background: none;
-    font-size: 0.8rem; cursor: pointer; color: #666;
-    border-bottom: 2px solid transparent; transition: all 0.15s;
+  .tab-bar {
+    display: flex; gap: 0; border-bottom: 1px solid #eee;
+    padding: 0 12px; background: #fafafa;
   }
-  .tab:hover { background: #f0f0f0; }
-  .tab.active { color: #1428A0; border-bottom-color: #1428A0; font-weight: 600; background: white; }
+  .tab {
+    padding: 8px 14px; border: none; background: none;
+    cursor: pointer; font-size: 0.8rem; color: #888;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    transition: all 0.15s;
+  }
+  .tab:hover { color: #1428A0; }
+  .tab.active { color: #1428A0; border-bottom-color: #1428A0; font-weight: 600; }
 
   .tab-content { display: none; }
   .tab-content.active { display: block; }
 
-  .img-wrap { position: relative; cursor: pointer; overflow: hidden; }
-  .img-label {
-    position: absolute; top: 8px; left: 8px;
-    background: rgba(0,0,0,0.55); color: white;
-    font-size: 0.68rem; padding: 2px 7px; border-radius: 4px; z-index: 1;
+  .img-wrap {
+    cursor: pointer; position: relative; overflow: hidden;
+    background: #f5f5f5;
   }
-  .img-wrap img { width: 100%; height: 220px; object-fit: cover; object-position: top; display: block; }
-  .no-img { text-align:center; padding: 50px 0; color: #bbb; font-size: 0.82rem; }
+  .img-wrap:hover { opacity: 0.92; }
+  .img-label {
+    position: absolute; top: 8px; left: 8px; z-index: 2;
+    background: rgba(0,0,0,0.6); color: white;
+    font-size: 0.7rem; padding: 3px 8px; border-radius: 10px;
+  }
+  .img-wrap img {
+    width: 100%; display: block;
+    transition: opacity 0.2s ease;
+  }
+  .no-img {
+    text-align: center; padding: 40px; color: #aaa; font-size: 0.85rem;
+  }
 
   .card-footer {
-    padding: 10px 18px; background: #fafafa;
-    border-top: 1px solid #f0f0f0; display: flex; gap: 6px; flex-wrap: wrap;
+    padding: 10px 14px; display: flex; gap: 8px; flex-wrap: wrap;
+    border-top: 1px solid #f0f0f0; background: #fafafa;
   }
   .badge {
-    font-size: 0.72rem; background: #e8eaf6; color: #1428A0;
-    padding: 3px 10px; border-radius: 20px; text-decoration: none;
+    font-size: 0.75rem; color: #555; text-decoration: none;
+    padding: 3px 10px; border: 1px solid #ddd; border-radius: 12px;
+    background: white;
   }
-  .badge:hover { background: #1428A0; color: white; }
+  .badge:hover { border-color: #1428A0; color: #1428A0; }
 
   /* Modal */
   .modal-overlay {
     display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,0.75); z-index: 100;
-    align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.7); z-index: 1000;
+    justify-content: center; align-items: center;
   }
   .modal-overlay.open { display: flex; }
   .modal {
-    background: white; border-radius: 16px;
-    width: 92vw; max-width: 1100px; max-height: 90vh;
+    background: white; border-radius: 12px;
+    width: 90vw; max-width: 1100px; max-height: 90vh;
     overflow-y: auto; padding: 24px; position: relative;
   }
   .modal-close {
     position: absolute; top: 14px; right: 18px;
-    background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #555;
+    background: none; border: none; font-size: 1.4rem;
+    cursor: pointer; color: #555;
   }
   .modal h2 { font-size: 1rem; color: #1428A0; margin-bottom: 14px; }
   .modal-tabs { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
@@ -165,8 +167,13 @@ const html = `<!DOCTYPE html>
     padding: 7px 16px; border-radius: 8px; font-size: 0.82rem; text-decoration: none;
   }
 
-  ::-webkit-scrollbar { height: 4px; }
+  ::-webkit-scrollbar { height: 4px; width: 4px; }
   ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+
+  @media (max-width: 600px) {
+    .grid { grid-template-columns: 1fr; padding: 16px; }
+    .country-slicer { padding: 10px 16px; }
+  }
 </style>
 </head>
 <body>
@@ -188,18 +195,16 @@ const html = `<!DOCTYPE html>
 </div>
 
 <div class="country-slicer">
-  ${config.countries.map((c, i) => {
+  <button class="country-btn all active" onclick="filterCountry('all', this)">🌍 전체</button>
+  ${config.countries.map(c => {
     const flag = flagMap[c.code] || '🌐';
     const label = labelMap[c.code] || c.name;
-    return `<button class="country-btn${i === 0 ? ' active' : ''}" data-country="${c.code}" onclick="filterCountry('${c.code}', this)">
-      <span class="flag">${flag}</span>
-      <span class="label">${label}</span>
-    </button>`;
+    return `<button class="country-btn" data-country="${c.code}" onclick="filterCountry('${c.code}', this)">${flag} ${label}</button>`;
   }).join('')}
 </div>
 
 <div class="grid" id="grid">
-  ${config.countries.map((country, ci) => {
+  ${config.countries.map(country => {
     const flag = flagMap[country.code] || '🌐';
     const label = labelMap[country.code] || country.name;
     return config.pages.map(page_config => {
@@ -208,22 +213,20 @@ const html = `<!DOCTYPE html>
       const gnbImg = `screenshots/${siteId}/${latest}-gnb-hover.png`;
       const fullImg = `screenshots/${siteId}/${latest}-full.png`;
 
-      // 탭 구성: Homepage = 상단뷰 + GNB Hover / Monitors = 상단뷰 + 전체페이지
       const tabs = [
         `<button class="tab active" onclick="switchTab(this, '${siteId}', 'top')">🖥️ 상단 뷰</button>`,
         page_config.gnbHover ? `<button class="tab" onclick="switchTab(this, '${siteId}', 'gnb')">📂 GNB Hover</button>` : '',
         page_config.captureFullPage ? `<button class="tab" onclick="switchTab(this, '${siteId}', 'full')">📄 전체 페이지</button>` : '',
       ].filter(Boolean).join('');
 
-      // footer 배지
       const badges = [
         `<a href="${topImg}" target="_blank" class="badge">🖼️ 상단 원본</a>`,
         page_config.gnbHover ? `<a href="${gnbImg}" target="_blank" class="badge">📂 GNB 원본</a>` : '',
-        `<a href="${fullImg}" target="_blank" class="badge">📄 전체 페이지</a>`,
+        page_config.captureFullPage ? `<a href="${fullImg}" target="_blank" class="badge">📄 전체 페이지</a>` : '',
       ].filter(Boolean).join('');
 
       return `
-      <div class="card${ci === 0 ? '' : ' hidden'}" data-country="${country.code}">
+      <div class="card" data-country="${country.code}">
         <div class="card-header">
           <span class="card-flag">${flag}</span>
           <span class="card-country">${label}</span>
@@ -261,6 +264,7 @@ const html = `<!DOCTYPE html>
   }).join('')}
 </div>
 
+<!-- Modal -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
   <div class="modal">
     <button class="modal-close" onclick="closeModal()">✕</button>
@@ -271,92 +275,151 @@ const html = `<!DOCTYPE html>
 </div>
 
 <script>
-const config = ${JSON.stringify({...config, flagMap: flagMap, labelMap: labelMap})};
+const config = ${JSON.stringify({...config, flagMap, labelMap})};
 const dates = ${JSON.stringify(dates)};
 let currentDate = dates[0] || '';
+let currentCountry = 'all';
 
 function filterCountry(code, btn) {
+  currentCountry = code;
   document.querySelectorAll('.country-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.querySelectorAll('.card').forEach(card => {
-    card.classList.toggle('hidden', card.dataset.country !== code);
+    if (code === 'all' || card.dataset.country === code) {
+      card.classList.remove('hidden');
+    } else {
+      card.classList.add('hidden');
+    }
   });
 }
 
+// ✅ 수정된 changeDate: 날짜 라벨 + 부드러운 opacity 전환
 function changeDate(date) {
   currentDate = date;
   config.countries.forEach(country => {
     config.pages.forEach(page => {
       const siteId = country.code + '-' + page.id;
-      const topEl = document.querySelector('#' + siteId + '-top img');
-      if (topEl) topEl.src = 'screenshots/' + siteId + '/' + date + '-top.png';
+
+      // 상단 뷰
+      const topWrap = document.querySelector('#' + siteId + '-top .img-wrap');
+      if (topWrap) {
+        const topImg = topWrap.querySelector('img');
+        if (topImg) {
+          topImg.style.opacity = '0.35';
+          topImg.src = 'screenshots/' + siteId + '/' + date + '-top.png';
+          topImg.onload = () => { topImg.style.opacity = '1'; };
+          topImg.onerror = () => {
+            topImg.style.opacity = '1';
+            topWrap.innerHTML = '<p class=no-img>캡처 없음</p>';
+          };
+        }
+        const lbl = topWrap.querySelector('.img-label');
+        if (lbl) lbl.textContent = date;
+      }
+
+      // GNB Hover
       if (page.gnbHover) {
-        const gnbEl = document.querySelector('#' + siteId + '-gnb img');
-        if (gnbEl) gnbEl.src = 'screenshots/' + siteId + '/' + date + '-gnb-hover.png';
+        const gnbWrap = document.querySelector('#' + siteId + '-gnb .img-wrap');
+        if (gnbWrap) {
+          const gnbImg = gnbWrap.querySelector('img');
+          if (gnbImg) {
+            gnbImg.style.opacity = '0.35';
+            gnbImg.src = 'screenshots/' + siteId + '/' + date + '-gnb-hover.png';
+            gnbImg.onload = () => { gnbImg.style.opacity = '1'; };
+            gnbImg.onerror = () => {
+              gnbImg.style.opacity = '1';
+              gnbWrap.innerHTML = '<p class=no-img>캡처 없음</p>';
+            };
+          }
+          const lbl = gnbWrap.querySelector('.img-label');
+          if (lbl) lbl.textContent = 'GNB Hover · ' + date;
+        }
       }
+
+      // 전체 페이지
       if (page.captureFullPage) {
-        const fullEl = document.querySelector('#' + siteId + '-full img');
-        if (fullEl) fullEl.src = 'screenshots/' + siteId + '/' + date + '-full.png';
+        const fullWrap = document.querySelector('#' + siteId + '-full .img-wrap');
+        if (fullWrap) {
+          const fullImg = fullWrap.querySelector('img');
+          if (fullImg) {
+            fullImg.style.opacity = '0.35';
+            fullImg.src = 'screenshots/' + siteId + '/' + date + '-full.png';
+            fullImg.onload = () => { fullImg.style.opacity = '1'; };
+            fullImg.onerror = () => {
+              fullImg.style.opacity = '1';
+              fullWrap.innerHTML = '<p class=no-img>캡처 없음</p>';
+            };
+          }
+          const lbl = fullWrap.querySelector('.img-label');
+          if (lbl) lbl.textContent = '전체 페이지 · ' + date;
+        }
       }
-      const card = topEl ? topEl.closest('.card') : null;
+
+      // footer 배지 링크 업데이트
+      const card = document.querySelector('[data-country="' + country.code + '"] #' + siteId + '-top')
+        ? document.querySelector('[data-country="' + country.code + '"]') : null;
       if (card) {
-        card.querySelectorAll('.badge').forEach(b => {
-          if (b.href.includes('-full.png')) b.href = 'screenshots/' + siteId + '/' + date + '-full.png';
-          if (b.href.includes('-top.png')) b.href = 'screenshots/' + siteId + '/' + date + '-top.png';
-          if (b.href.includes('-gnb-hover.png')) b.href = 'screenshots/' + siteId + '/' + date + '-gnb-hover.png';
-        });
-        card.querySelectorAll('.img-label').forEach(lbl => {
-          lbl.textContent = lbl.textContent.replace(/\d{4}-\d{2}-\d{2}/, date);
+        card.querySelectorAll('.badge').forEach(a => {
+          if (a.href.includes('-top.png')) {
+            a.href = 'screenshots/' + siteId + '/' + date + '-top.png';
+          } else if (a.href.includes('-gnb-hover.png')) {
+            a.href = 'screenshots/' + siteId + '/' + date + '-gnb-hover.png';
+          } else if (a.href.includes('-full.png')) {
+            a.href = 'screenshots/' + siteId + '/' + date + '-full.png';
+          }
         });
       }
     });
   });
 }
 
-function switchTab(btn, siteId, tab) {
-  btn.closest('.card').querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+function switchTab(btn, siteId, type) {
+  // 같은 카드 내 탭 버튼 처리
+  const card = btn.closest('.card');
+  card.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
-  btn.closest('.card').querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  const el = document.getElementById(siteId + '-' + tab);
-  if (el) el.classList.add('active');
+  // 탭 콘텐츠 전환
+  card.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+  const target = document.getElementById(siteId + '-' + type);
+  if (target) target.classList.add('active');
 }
 
 function openModal(siteId, type) {
-  const parts = siteId.split('-');
-  const countryCode = parts[0];
-  const pageId = parts.slice(1).join('-');
-  const country = config.countries.find(c => c.code === countryCode);
-  const page = config.pages.find(p => p.id === pageId);
-  const flag = config.flagMap[countryCode] || '';
-  const label = config.labelMap[countryCode] || countryCode;
+  const flag = config.countries.find(c => siteId.startsWith(c.code + '-'));
+  const country = flag ? (config.flagMap[flag.code] || '') + ' ' + (config.labelMap[flag.code] || flag.name) : siteId;
+  const page = config.pages.find(p => siteId.endsWith('-' + p.id));
+  const pageName = page ? page.name : '';
 
-  document.getElementById('modalTitle').textContent = flag + ' ' + label + ' · ' + (page ? page.name : pageId);
+  document.getElementById('modalTitle').textContent = country + ' · ' + pageName;
 
-  const types = [
+  const tabTypes = [
     { key: 'top', label: '🖥️ 상단 뷰' },
     ...(page && page.gnbHover ? [{ key: 'gnb', label: '📂 GNB Hover' }] : []),
-    { key: 'full', label: '📄 전체 페이지' },
+    ...(page && page.captureFullPage ? [{ key: 'full', label: '📄 전체 페이지' }] : []),
   ];
 
-  document.getElementById('modalTabs').innerHTML = types.map(t =>
-    '<button class="modal-tab-btn ' + (t.key === type ? 'active' : '') + '" onclick="switchModalTab(this, \\'' + siteId + '\\', \\'' + t.key + '\\')">' + t.label + '</button>'
+  document.getElementById('modalTabs').innerHTML = tabTypes.map(t =>
+    \`<button class="modal-tab-btn \${t.key === type ? 'active' : ''}"
+      onclick="switchModalTab(this, '\${siteId}', '\${t.key}')">\${t.label}</button>\`
   ).join('');
 
-  showModalImg(siteId, type);
+  showModalImg(siteId, currentDate, type);
   document.getElementById('modalOverlay').classList.add('open');
 }
 
-function showModalImg(siteId, type) {
+function showModalImg(siteId, date, type) {
   const suffix = type === 'full' ? 'full' : type === 'gnb' ? 'gnb-hover' : 'top';
-  const src = 'screenshots/' + siteId + '/' + currentDate + '-' + suffix + '.png';
-  document.getElementById('modalContent').innerHTML =
-    '<img src="' + src + '" alt="' + type + '"/><br/><a href="' + src + '" target="_blank" class="open-btn">원본 크기로 보기 ↗</a>';
+  const src = \`screenshots/\${siteId}/\${date}-\${suffix}.png\`;
+  document.getElementById('modalContent').innerHTML = \`
+    <img src="\${src}" onerror="this.src=''" alt="\${type}"/>
+    <br/><a href="\${src}" target="_blank" class="open-btn">원본 크기로 보기 ↗</a>
+  \`;
 }
 
 function switchModalTab(btn, siteId, type) {
   document.querySelectorAll('.modal-tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  showModalImg(siteId, type);
+  showModalImg(siteId, currentDate, type);
 }
 
 function closeModal(e) {
@@ -364,10 +427,15 @@ function closeModal(e) {
     document.getElementById('modalOverlay').classList.remove('open');
   }
 }
+
+// 키보드 ESC로 모달 닫기
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
 </script>
 </body>
 </html>`;
 
 fs.mkdirSync('docs', { recursive: true });
 fs.writeFileSync(path.join('docs', 'index.html'), html);
-console.log('Dashboard generated!');
+console.log('✅ Dashboard generated: docs/index.html');
