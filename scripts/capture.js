@@ -155,21 +155,8 @@ async function captureSite(context, country, page_config) {
 
   const page = await context.newPage();
 
-  // 홈페이지는 이미지 포함, PF 페이지는 이미지 차단
-  const blockImages = page_config.id !== 'home';
-
-  if (blockImages) {
-    // 네트워크 레벨에서 이미지 요청 차단 (더 빠름)
-    await page.route('**/*.{png,jpg,jpeg,webp,gif,svg,avif}', route => {
-      // GNB나 로고 이미지는 허용
-      const url = route.request().url();
-      if (url.includes('logo') || url.includes('gnb')) {
-        route.continue();
-      } else {
-        route.abort();
-      }
-    });
-  }
+  // 모든 페이지 이미지 포함 캡처 (제품 이미지 정상 표시)
+  const blockImages = false;
 
   try {
     console.log(`  [${country.code}] ${page_config.name} ${blockImages ? '(이미지 차단)' : ''}`);
