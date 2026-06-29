@@ -92,25 +92,35 @@ async function captureGNBHover(page, dir, countryCode) {
 }
 
 async function fullScroll(page) {
-  // 이미지 로딩 차단 - 레이아웃만 캡처
+  // CSS 애니메이션/트랜지션 강제 비활성화 (레이아웃은 유지)
   await page.evaluate(() => {
-    // 모든 img 태그 숨기고 placeholder로 교체
-    document.querySelectorAll('img').forEach(img => {
-      img.style.visibility = 'hidden';
-      img.removeAttribute('loading');
-      img.removeAttribute('src');
-      img.removeAttribute('srcset');
-      img.removeAttribute('data-src');
-      img.removeAttribute('data-lazy-src');
-    });
+    const style = document.createElement('style');
+    style.textContent = `
+      *, *::before, *::after {
+        animation-duration: 0s !important;
+        animation-delay: 0s !important;
+        transition-duration: 0s !important;
+        transition-delay: 0s !important;
+      }
+    `;
+    document.head.appendChild(style);
 
-    // background-image도 제거
-    document.querySelectorAll('[style*="background-image"]').forEach(el => {
-      el.style.backgroundImage = 'none';
-    });
+    // IntersectionObserver 기반 lazy load 강제 트리거
+    if (window.IntersectionObserver) {
+      const originalObserver = window.IntersectionObserver;
+      window.IntersectionObserver = function(callback, options) {
+        const observer = new originalObserver(callback, options);
+        const originalObserve = observer.observe.bind(observer);
+        observer.observe = (target) => {
+          callback([{ isIntersecting: true, target }], observer);
+          originalObserve(target);
+        };
+        return observer;
+      };
+    }
   });
 
-  // 스크롤로 레이아웃 렌더링 트리거 (이미지 로딩 없이 빠르게)
+  // 스크롤로 lazy load 트리거
   let previousHeight = 0;
   let attempts = 0;
 
@@ -121,7 +131,7 @@ async function fullScroll(page) {
 
     while (pos < currentHeight) {
       await page.evaluate((y) => window.scrollTo(0, y), pos);
-      await page.waitForTimeout(300); // 이미지 없으니 짧게
+      await page.waitForTimeout(500); // JS 렌더링 대기
       pos += Math.floor(viewportHeight * 0.8);
     }
 
@@ -134,7 +144,7 @@ async function fullScroll(page) {
   }
 
   await page.evaluate(() => window.scrollTo(0, 0));
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(1500);
 }
 
 async function captureSite(context, country, page_config) {
