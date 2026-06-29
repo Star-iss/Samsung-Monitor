@@ -22,7 +22,7 @@
       "path": "/",
       "id": "home",
       "gnbHover": true,
-      "captureFullPage": false
+      "captureFullPage": true
     },
     {
       "name": "Monitors",
