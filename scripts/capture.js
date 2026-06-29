@@ -42,7 +42,6 @@ async function captureGNBHover(page, dir, countryCode) {
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(1000);
 
-    // 한국 사이트의 appWebMask 레이어 제거
     await page.evaluate(() => {
       const mask = document.getElementById('appWebMask');
       if (mask) {
@@ -93,48 +92,40 @@ async function captureGNBHover(page, dir, countryCode) {
 }
 
 async function fullScroll(page) {
+  // 이미지 로딩 차단 - 레이아웃만 캡처
+  await page.evaluate(() => {
+    // 모든 img 태그 숨기고 placeholder로 교체
+    document.querySelectorAll('img').forEach(img => {
+      img.style.visibility = 'hidden';
+      img.removeAttribute('loading');
+      img.removeAttribute('src');
+      img.removeAttribute('srcset');
+      img.removeAttribute('data-src');
+      img.removeAttribute('data-lazy-src');
+    });
+
+    // background-image도 제거
+    document.querySelectorAll('[style*="background-image"]').forEach(el => {
+      el.style.backgroundImage = 'none';
+    });
+  });
+
+  // 스크롤로 레이아웃 렌더링 트리거 (이미지 로딩 없이 빠르게)
   let previousHeight = 0;
   let attempts = 0;
 
-  while (attempts < 30) {
+  while (attempts < 20) {
     const currentHeight = await page.evaluate(() => document.body.scrollHeight);
     const viewportHeight = await page.evaluate(() => window.innerHeight);
     let pos = 0;
 
     while (pos < currentHeight) {
       await page.evaluate((y) => window.scrollTo(0, y), pos);
-      await page.waitForTimeout(800);
-
-      // lazy load 강제 해제
-      await page.evaluate(() => {
-        document.querySelectorAll('img').forEach(img => {
-          img.removeAttribute('loading');
-          if (img.dataset.src) img.src = img.dataset.src;
-          if (img.dataset.lazySrc) img.src = img.dataset.lazySrc;
-          if (img.dataset.originalSrc) img.src = img.dataset.originalSrc;
-        });
-      });
-
+      await page.waitForTimeout(300); // 이미지 없으니 짧게
       pos += Math.floor(viewportHeight * 0.8);
     }
 
-    // 맨 아래까지 스크롤 후 이미지 로딩 대기
-    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    await page.waitForTimeout(3000);
-
-    // 이미지가 모두 로딩될 때까지 대기 (최대 15초)
-    await page.evaluate(async () => {
-      const imgs = Array.from(document.querySelectorAll('img'));
-      await Promise.all(imgs.map(img => {
-        if (img.complete) return Promise.resolve();
-        return new Promise(resolve => {
-          img.onload = resolve;
-          img.onerror = resolve;
-          setTimeout(resolve, 15000);
-        });
-      }));
-    });
-
+    await page.waitForTimeout(2000);
     const newHeight = await page.evaluate(() => document.body.scrollHeight);
     console.log(`    Scroll ${attempts + 1}: ${previousHeight} → ${newHeight}px`);
     if (newHeight === previousHeight) break;
@@ -143,7 +134,7 @@ async function fullScroll(page) {
   }
 
   await page.evaluate(() => window.scrollTo(0, 0));
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(1000);
 }
 
 async function captureSite(context, country, page_config) {
@@ -153,10 +144,27 @@ async function captureSite(context, country, page_config) {
   fs.mkdirSync(dir, { recursive: true });
 
   const page = await context.newPage();
+
+  // 홈페이지는 이미지 포함, PF 페이지는 이미지 차단
+  const blockImages = page_config.id !== 'home';
+
+  if (blockImages) {
+    // 네트워크 레벨에서 이미지 요청 차단 (더 빠름)
+    await page.route('**/*.{png,jpg,jpeg,webp,gif,svg,avif}', route => {
+      // GNB나 로고 이미지는 허용
+      const url = route.request().url();
+      if (url.includes('logo') || url.includes('gnb')) {
+        route.continue();
+      } else {
+        route.abort();
+      }
+    });
+  }
+
   try {
-    console.log(`  [${country.code}] ${page_config.name}`);
+    console.log(`  [${country.code}] ${page_config.name} ${blockImages ? '(이미지 차단)' : ''}`);
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
-    await page.waitForTimeout(5000);
+    await page.waitForTimeout(4000);
 
     await acceptCookies(page);
     await page.waitForTimeout(2000);
