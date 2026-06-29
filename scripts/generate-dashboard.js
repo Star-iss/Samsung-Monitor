@@ -69,7 +69,7 @@ const html = `<!DOCTYPE html>
 
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    grid-template-columns: repeat(${config.pages.length}, 1fr);
     gap: 20px; padding: 20px 24px;
   }
 
