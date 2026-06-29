@@ -174,8 +174,13 @@ async function captureSite(context, country, page_config) {
     // GNB Hover (홈페이지만)
     if (page_config.gnbHover) {
       await captureGNBHover(page, dir, country.code);
+      // GNB 닫기: 빈 영역으로 마우스 이동 후 충분히 대기
       await page.mouse.move(68, 177);
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(500);
+      await page.mouse.move(0, 500); // 페이지 중앙으로 한 번 더 이동
+      await page.waitForTimeout(2000); // GNB 완전히 닫힐 때까지 대기
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.waitForTimeout(500);
     }
 
     // 전체 페이지
