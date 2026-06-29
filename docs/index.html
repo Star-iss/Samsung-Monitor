@@ -169,8 +169,7 @@
 </div>
 
 <div class="country-slicer">
-  <button class="country-btn all active" onclick="filterCountry('all', this)">🌍 전체</button>
-  <button class="country-btn" data-country="de" onclick="filterCountry('de', this)">🇩🇪 Germany</button><button class="country-btn" data-country="au" onclick="filterCountry('au', this)">🇦🇺 Australia</button><button class="country-btn" data-country="be" onclick="filterCountry('be', this)">🇧🇪 Belgium</button><button class="country-btn" data-country="be_fr" onclick="filterCountry('be_fr', this)">🇧🇪 Belgium (FR)</button><button class="country-btn" data-country="fr" onclick="filterCountry('fr', this)">🇫🇷 France</button><button class="country-btn" data-country="it" onclick="filterCountry('it', this)">🇮🇹 Italy</button><button class="country-btn" data-country="sec" onclick="filterCountry('sec', this)">🇰🇷 Korea</button><button class="country-btn" data-country="nl" onclick="filterCountry('nl', this)">🇳🇱 Netherlands</button><button class="country-btn" data-country="no" onclick="filterCountry('no', this)">🇳🇴 Norway</button><button class="country-btn" data-country="pt" onclick="filterCountry('pt', this)">🇵🇹 Portugal</button><button class="country-btn" data-country="es" onclick="filterCountry('es', this)">🇪🇸 Spain</button><button class="country-btn" data-country="se" onclick="filterCountry('se', this)">🇸🇪 Sweden</button><button class="country-btn" data-country="tr" onclick="filterCountry('tr', this)">🇹🇷 Turkey</button><button class="country-btn" data-country="uk" onclick="filterCountry('uk', this)">🇬🇧 United Kingdom</button><button class="country-btn" data-country="us" onclick="filterCountry('us', this)">🇺🇸 United States</button>
+  <button class="country-btn active" data-country="de" onclick="filterCountry('de', this)">🇩🇪 Germany</button><button class="country-btn" data-country="au" onclick="filterCountry('au', this)">🇦🇺 Australia</button><button class="country-btn" data-country="be" onclick="filterCountry('be', this)">🇧🇪 Belgium</button><button class="country-btn" data-country="be_fr" onclick="filterCountry('be_fr', this)">🇧🇪 Belgium (FR)</button><button class="country-btn" data-country="fr" onclick="filterCountry('fr', this)">🇫🇷 France</button><button class="country-btn" data-country="it" onclick="filterCountry('it', this)">🇮🇹 Italy</button><button class="country-btn" data-country="sec" onclick="filterCountry('sec', this)">🇰🇷 Korea</button><button class="country-btn" data-country="nl" onclick="filterCountry('nl', this)">🇳🇱 Netherlands</button><button class="country-btn" data-country="no" onclick="filterCountry('no', this)">🇳🇴 Norway</button><button class="country-btn" data-country="pt" onclick="filterCountry('pt', this)">🇵🇹 Portugal</button><button class="country-btn" data-country="es" onclick="filterCountry('es', this)">🇪🇸 Spain</button><button class="country-btn" data-country="se" onclick="filterCountry('se', this)">🇸🇪 Sweden</button><button class="country-btn" data-country="tr" onclick="filterCountry('tr', this)">🇹🇷 Turkey</button><button class="country-btn" data-country="uk" onclick="filterCountry('uk', this)">🇬🇧 United Kingdom</button><button class="country-btn" data-country="us" onclick="filterCountry('us', this)">🇺🇸 United States</button>
 </div>
 
 <div class="grid" id="grid">
@@ -1031,7 +1030,16 @@
 const config = {"countries":[{"code":"de","name":"Germany","gnbText":"Computer & Monitore"},{"code":"au","name":"Australia","gnbText":"Monitors & Storage"},{"code":"be","name":"Belgium","gnbText":"Computers & Monitoren"},{"code":"be_fr","name":"Belgium (FR)","gnbText":"Ordinateurs et écrans"},{"code":"fr","name":"France","gnbText":"Ordinateurs et écrans"},{"code":"it","name":"Italy","gnbText":"Computer e monitor"},{"code":"sec","name":"Korea","gnbText":"PC/주변기기"},{"code":"nl","name":"Netherlands","gnbText":"Computers & Monitoren"},{"code":"no","name":"Norway","gnbText":"PC-er og skjermer"},{"code":"pt","name":"Portugal","gnbText":"Monitores e armazenamento"},{"code":"es","name":"Spain","gnbText":"Informática y monitores"},{"code":"se","name":"Sweden","gnbText":"Datorer & Bildskärmar"},{"code":"tr","name":"Turkey","gnbText":"Bilgisayar & Monitör"},{"code":"uk","name":"United Kingdom","gnbText":"Computers & Monitors"},{"code":"us","name":"United States","gnbText":"Computers & Monitors"}],"pages":[{"name":"Homepage","path":"/","id":"home","gnbHover":true,"captureFullPage":false},{"name":"Monitors","path":"/monitors/all-monitors/","id":"monitors","gnbHover":false,"captureFullPage":true}],"schedule":"0 9 * * *","flagMap":{"de":"🇩🇪","au":"🇦🇺","be":"🇧🇪","be_fr":"🇧🇪","fr":"🇫🇷","it":"🇮🇹","sec":"🇰🇷","nl":"🇳🇱","no":"🇳🇴","pt":"🇵🇹","es":"🇪🇸","se":"🇸🇪","tr":"🇹🇷","uk":"🇬🇧","us":"🇺🇸"},"labelMap":{"de":"Germany","au":"Australia","be":"Belgium","be_fr":"Belgium (FR)","fr":"France","it":"Italy","sec":"Korea","nl":"Netherlands","no":"Norway","pt":"Portugal","es":"Spain","se":"Sweden","tr":"Turkey","uk":"United Kingdom","us":"United States"}};
 const dates = ["2026-06-29","2026-06-28","2026-06-27","2026-06-26","2026-06-25","2026-06-24","2026-06-23","2026-06-22","2026-06-21","2026-06-20","2026-06-19","2026-06-18","2026-06-17","2026-06-16","2026-06-15","2026-06-14","2026-06-13","2026-06-12","2026-06-11","2026-06-10","2026-06-09","2026-06-08","2026-06-07","2026-06-06","2026-06-05","2026-06-04","2026-06-03","2026-06-02","2026-06-01","2026-05-31","2026-05-30"];
 let currentDate = dates[0] || '';
-let currentCountry = 'all';
+let currentCountry = config.countries[0]?.code || '';
+
+// 초기 로드 시 첫 번째 국가만 표시
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.card').forEach(card => {
+    if (card.dataset.country !== currentCountry) {
+      card.classList.add('hidden');
+    }
+  });
+});
 
 function filterCountry(code, btn) {
   currentCountry = code;
@@ -1046,71 +1054,54 @@ function filterCountry(code, btn) {
   });
 }
 
-// ✅ 수정된 changeDate: 날짜 라벨 + 부드러운 opacity 전환
 function changeDate(date) {
   currentDate = date;
   config.countries.forEach(country => {
     config.pages.forEach(page => {
       const siteId = country.code + '-' + page.id;
 
-      // 상단 뷰
-      const topWrap = document.querySelector('#' + siteId + '-top .img-wrap');
-      if (topWrap) {
-        const topImg = topWrap.querySelector('img');
-        if (topImg) {
-          topImg.style.opacity = '0.35';
-          topImg.src = 'screenshots/' + siteId + '/' + date + '-top.png';
-          topImg.onload = () => { topImg.style.opacity = '1'; };
-          topImg.onerror = () => {
-            topImg.style.opacity = '1';
-            topWrap.innerHTML = '<p class=no-img>캡처 없음</p>';
-          };
-        }
-        const lbl = topWrap.querySelector('.img-label');
-        if (lbl) lbl.textContent = date;
+      function swapImg(wrap, newSrc, labelText) {
+        if (!wrap) return;
+        const img = wrap.querySelector('img');
+        const lbl = wrap.querySelector('.img-label');
+        // ✅ 라벨 즉시 업데이트
+        if (lbl) lbl.textContent = labelText;
+        if (!img) return;
+        // ✅ 프리로드 후 교체 (깜빡임 없이 빠르게)
+        const preloader = new Image();
+        preloader.onload = () => { img.src = newSrc; };
+        preloader.onerror = () => { wrap.innerHTML = '<p class=no-img>캡처 없음</p>'; };
+        preloader.src = newSrc;
       }
+
+      // 상단 뷰
+      swapImg(
+        document.querySelector('#' + siteId + '-top .img-wrap'),
+        'screenshots/' + siteId + '/' + date + '-top.png',
+        date
+      );
 
       // GNB Hover
       if (page.gnbHover) {
-        const gnbWrap = document.querySelector('#' + siteId + '-gnb .img-wrap');
-        if (gnbWrap) {
-          const gnbImg = gnbWrap.querySelector('img');
-          if (gnbImg) {
-            gnbImg.style.opacity = '0.35';
-            gnbImg.src = 'screenshots/' + siteId + '/' + date + '-gnb-hover.png';
-            gnbImg.onload = () => { gnbImg.style.opacity = '1'; };
-            gnbImg.onerror = () => {
-              gnbImg.style.opacity = '1';
-              gnbWrap.innerHTML = '<p class=no-img>캡처 없음</p>';
-            };
-          }
-          const lbl = gnbWrap.querySelector('.img-label');
-          if (lbl) lbl.textContent = 'GNB Hover · ' + date;
-        }
+        swapImg(
+          document.querySelector('#' + siteId + '-gnb .img-wrap'),
+          'screenshots/' + siteId + '/' + date + '-gnb-hover.png',
+          'GNB Hover · ' + date
+        );
       }
 
       // 전체 페이지
       if (page.captureFullPage) {
-        const fullWrap = document.querySelector('#' + siteId + '-full .img-wrap');
-        if (fullWrap) {
-          const fullImg = fullWrap.querySelector('img');
-          if (fullImg) {
-            fullImg.style.opacity = '0.35';
-            fullImg.src = 'screenshots/' + siteId + '/' + date + '-full.png';
-            fullImg.onload = () => { fullImg.style.opacity = '1'; };
-            fullImg.onerror = () => {
-              fullImg.style.opacity = '1';
-              fullWrap.innerHTML = '<p class=no-img>캡처 없음</p>';
-            };
-          }
-          const lbl = fullWrap.querySelector('.img-label');
-          if (lbl) lbl.textContent = '전체 페이지 · ' + date;
-        }
+        swapImg(
+          document.querySelector('#' + siteId + '-full .img-wrap'),
+          'screenshots/' + siteId + '/' + date + '-full.png',
+          '전체 페이지 · ' + date
+        );
       }
 
       // footer 배지 링크 업데이트
-      const card = document.querySelector('[data-country="' + country.code + '"] #' + siteId + '-top')
-        ? document.querySelector('[data-country="' + country.code + '"]') : null;
+      const card = document.querySelector('[data-country="' + country.code + '"][data-id]') ||
+        document.querySelector('[data-country="' + country.code + '"]');
       if (card) {
         card.querySelectorAll('.badge').forEach(a => {
           if (a.href.includes('-top.png')) {
