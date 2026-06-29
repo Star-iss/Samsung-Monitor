@@ -309,15 +309,29 @@ function changeDate(date) {
 
       function swapImg(wrap, newSrc, labelText) {
         if (!wrap) return;
-        const img = wrap.querySelector('img');
+        let img = wrap.querySelector('img');
+        if (!img) {
+          wrap.innerHTML = '<div class="img-label"></div><img/>';
+          img = wrap.querySelector('img');
+        }
         const lbl = wrap.querySelector('.img-label');
-        // ✅ 라벨 즉시 업데이트
         if (lbl) lbl.textContent = labelText;
-        if (!img) return;
-        // ✅ 프리로드 후 교체 (깜빡임 없이 빠르게)
         const preloader = new Image();
-        preloader.onload = () => { img.src = newSrc; };
-        preloader.onerror = () => { wrap.innerHTML = '<p class=no-img>캡처 없음</p>'; };
+        preloader.onload = () => {
+          img.src = newSrc;
+          img.style.display = '';
+          const noImg = wrap.querySelector('.no-img');
+          if (noImg) noImg.remove();
+        };
+        preloader.onerror = () => {
+          img.style.display = 'none';
+          if (!wrap.querySelector('.no-img')) {
+            const p = document.createElement('p');
+            p.className = 'no-img';
+            p.textContent = '캡처 없음';
+            wrap.appendChild(p);
+          }
+        };
         preloader.src = newSrc;
       }
 
