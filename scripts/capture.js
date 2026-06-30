@@ -118,7 +118,7 @@ async function fullScroll(page) {
     while (pos < currentHeight) {
       await page.evaluate((y) => window.scrollTo(0, y), pos);
 
-      // 뷰포트 내 이미지 로딩 대기 (최대 3초)
+      // 뷰포트 내 이미지 로딩 대기 (최대 5초)
       await page.evaluate(() => {
         const imgs = Array.from(document.querySelectorAll('img'));
         return Promise.all(
@@ -127,17 +127,17 @@ async function fullScroll(page) {
             return new Promise(resolve => {
               img.addEventListener('load', resolve, { once: true });
               img.addEventListener('error', resolve, { once: true });
-              setTimeout(resolve, 3000);
+              setTimeout(resolve, 5000);
             });
           })
         );
       });
 
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(1000);
       pos += Math.floor(viewportHeight * 0.8);
     }
 
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
     const newHeight = await page.evaluate(() => document.body.scrollHeight);
     console.log(`    Scroll ${attempts + 1}: ${previousHeight} → ${newHeight}px`);
     if (newHeight === previousHeight) break;
@@ -146,7 +146,7 @@ async function fullScroll(page) {
   }
 
   await page.evaluate(() => window.scrollTo(0, 0));
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(3000);
 }
 
 async function captureSite(context, country, page_config) {
@@ -191,7 +191,8 @@ async function captureSite(context, country, page_config) {
       await page.mouse.move(0, 500); // 페이지 중앙으로 한 번 더 이동
       await page.waitForTimeout(2000); // GNB 완전히 닫힐 때까지 대기
       await page.evaluate(() => window.scrollTo(0, 0));
-      await page.waitForTimeout(500);
+      // 메인 배너/캐러셀 렌더링 추가 대기
+      await page.waitForTimeout(3000);
     }
 
     // 전체 페이지
