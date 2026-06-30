@@ -109,6 +109,7 @@ async function fullScroll(page) {
   // 스크롤하며 lazy load 트리거 + 이미지 로딩 대기
   let previousHeight = 0;
   let attempts = 0;
+  const MIN_CYCLES = 2; // 느린 국가 대응: 높이가 같아도 최소 2회는 스크롤
 
   while (attempts < 20) {
     const currentHeight = await page.evaluate(() => document.body.scrollHeight);
@@ -177,7 +178,7 @@ async function fullScroll(page) {
     await page.waitForTimeout(3000);
     const newHeight = await page.evaluate(() => document.body.scrollHeight);
     console.log(`    Scroll ${attempts + 1}: ${previousHeight} → ${newHeight}px`);
-    if (newHeight === previousHeight) break;
+    if (newHeight === previousHeight && attempts + 1 >= MIN_CYCLES) break;
     previousHeight = newHeight;
     attempts++;
   }
@@ -216,6 +217,11 @@ async function captureSite(context, country, page_config) {
     await acceptCookies(page);
     await page.waitForTimeout(2000);
 
+    // 네트워크 안정화 대기 (느린 국가 대응, 실패해도 무시하고 진행)
+    try {
+      await page.waitForLoadState('networkidle', { timeout: 10000 });
+    } catch {}
+
     // 상단 뷰
     await page.screenshot({ path: path.join(dir, `${today}-top.png`), fullPage: false });
 
@@ -229,6 +235,9 @@ async function captureSite(context, country, page_config) {
       await page.waitForTimeout(2000); // GNB 완전히 닫힐 때까지 대기
       await page.evaluate(() => window.scrollTo(0, 0));
       // 메인 배너/캐러셀 렌더링 추가 대기
+      try {
+        await page.waitForLoadState('networkidle', { timeout: 5000 });
+      } catch {}
       await page.waitForTimeout(3000);
     }
 
