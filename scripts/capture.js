@@ -118,12 +118,20 @@ async function fullScroll(page) {
     while (pos < currentHeight) {
       await page.evaluate((y) => window.scrollTo(0, y), pos);
 
-      // 뷰포트 내 이미지 로딩 대기 (최대 5초)
+      // 뷰포트 진입 시 scroll/resize 이벤트 강제 발생 (lazy-load 라이브러리 트리거용)
+      await page.evaluate(() => {
+        window.dispatchEvent(new Event('scroll'));
+        window.dispatchEvent(new Event('resize'));
+      });
+
+      await page.waitForTimeout(300);
+
+      // 뷰포트 내 <img> 태그 로딩 대기 (최대 5초)
       await page.evaluate(() => {
         const imgs = Array.from(document.querySelectorAll('img'));
         return Promise.all(
           imgs.map(img => {
-            if (img.complete) return Promise.resolve();
+            if (img.complete && img.naturalWidth > 0) return Promise.resolve();
             return new Promise(resolve => {
               img.addEventListener('load', resolve, { once: true });
               img.addEventListener('error', resolve, { once: true });
@@ -133,7 +141,36 @@ async function fullScroll(page) {
         );
       });
 
-      await page.waitForTimeout(1000);
+      // background-image 사용하는 뷰포트 내 요소들도 로딩 대기 (최대 4초)
+      await page.evaluate(() => {
+        const vh = window.innerHeight;
+        const all = Array.from(document.querySelectorAll('*'));
+        const targets = [];
+
+        for (const el of all) {
+          const style = getComputedStyle(el);
+          const bg = style.backgroundImage;
+          if (bg && bg !== 'none' && bg.includes('url(')) {
+            const rect = el.getBoundingClientRect();
+            if (rect.bottom >= -vh && rect.top <= vh * 2) {
+              const match = bg.match(/url\(["']?(.*?)["']?\)/);
+              if (match && match[1]) targets.push(match[1]);
+            }
+          }
+        }
+
+        return Promise.all(
+          targets.map(src => new Promise(resolve => {
+            const img = new Image();
+            img.onload = resolve;
+            img.onerror = resolve;
+            img.src = src;
+            setTimeout(resolve, 4000);
+          }))
+        );
+      });
+
+      await page.waitForTimeout(700);
       pos += Math.floor(viewportHeight * 0.8);
     }
 
