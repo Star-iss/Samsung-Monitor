@@ -211,8 +211,39 @@ async function captureSite(context, country, page_config) {
 
   try {
     console.log(`  [${country.code}] ${page_config.name} ${blockImages ? '(이미지 차단)' : ''}`);
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
-    await page.waitForTimeout(4000);
+
+    // 봇 차단(Akamai 등) 감지 시 재시도하며 goto
+    let blocked = true;
+    let lastErr = null;
+    for (let retry = 0; retry < 3 && blocked; retry++) {
+      if (retry > 0) {
+        console.log(`    ⚠️ 차단 감지, 재시도 ${retry}/2...`);
+        await page.waitForTimeout(5000 * retry); // 점점 더 길게 대기 후 재시도
+      }
+      try {
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+        await page.waitForTimeout(4000);
+
+        const bodyText = await page.evaluate(() => document.body.innerText.slice(0, 300));
+        const isBlocked =
+          bodyText.includes("don't have permission") ||
+          bodyText.includes('edgesuite.net') ||
+          bodyText.includes('Reference #') ||
+          bodyText.includes('Access Denied');
+
+        if (!isBlocked) {
+          blocked = false;
+        } else {
+          lastErr = new Error('Akamai/봇 차단 페이지 감지됨');
+        }
+      } catch (err) {
+        lastErr = err;
+      }
+    }
+
+    if (blocked) {
+      throw lastErr || new Error('차단 페이지에서 재시도 모두 실패');
+    }
 
     await acceptCookies(page);
     await page.waitForTimeout(2000);
