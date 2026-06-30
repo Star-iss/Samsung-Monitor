@@ -111,19 +111,34 @@ async function fullScroll(page) {
   let attempts = 0;
   const MIN_CYCLES = 2; // 느린 국가 대응: 높이가 같아도 최소 2회는 스크롤
 
+  // 페이지 맨 위로 마우스 포커스를 두고 시작 (wheel 이벤트가 페이지에 적용되도록)
+  await page.mouse.move(400, 400);
+
   while (attempts < 20) {
     const currentHeight = await page.evaluate(() => document.body.scrollHeight);
     const viewportHeight = await page.evaluate(() => window.innerHeight);
     let pos = 0;
 
     while (pos < currentHeight) {
-      await page.evaluate((y) => window.scrollTo(0, y), pos);
+      // 실제 휠 이벤트로 스크롤 (Waypoint 등 scroll-position 기반 라이브러리 대응)
+      const before = await page.evaluate(() => window.scrollY);
+      const targetDelta = Math.floor(viewportHeight * 0.8);
+      // 여러 번 작은 휠 입력으로 나눠서 자연스러운 스크롤 흉내
+      const steps = 6;
+      for (let s = 0; s < steps; s++) {
+        await page.mouse.wheel(0, targetDelta / steps);
+        await page.waitForTimeout(80);
+      }
+      const after = await page.evaluate(() => window.scrollY);
+      pos = after;
 
-      // 뷰포트 진입 시 scroll/resize 이벤트 강제 발생 (lazy-load 라이브러리 트리거용)
-      await page.evaluate(() => {
-        window.dispatchEvent(new Event('scroll'));
-        window.dispatchEvent(new Event('resize'));
-      });
+      // 휠로 더 이상 안 움직이면(맨 아래 도달) 강제로 scrollTo 보정
+      if (after === before) {
+        await page.evaluate((y) => window.scrollTo(0, y), pos + targetDelta);
+        await page.evaluate(() => {
+          window.dispatchEvent(new Event('scroll'));
+        });
+      }
 
       await page.waitForTimeout(300);
 
@@ -172,7 +187,9 @@ async function fullScroll(page) {
       });
 
       await page.waitForTimeout(700);
-      pos += Math.floor(viewportHeight * 0.8);
+
+      // 더 이상 스크롤 안 움직이면 루프 탈출 (맨 아래 도달)
+      if (pos >= currentHeight - viewportHeight - 5) break;
     }
 
     await page.waitForTimeout(3000);
