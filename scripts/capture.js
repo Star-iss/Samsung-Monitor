@@ -157,8 +157,19 @@ async function captureSite(context, country, page_config) {
 
   const page = await context.newPage();
 
-  // 모든 페이지 이미지 포함 캡처 (제품 이미지 정상 표시)
-  const blockImages = false;
+  // 홈페이지는 이미지 포함, Monitor Product Finder는 이미지 차단 (용량 절약)
+  const blockImages = page_config.id !== 'home';
+
+  if (blockImages) {
+    await page.route('**/*.{png,jpg,jpeg,webp,gif,svg,avif}', route => {
+      const url = route.request().url();
+      if (url.includes('logo') || url.includes('gnb')) {
+        route.continue();
+      } else {
+        route.abort();
+      }
+    });
+  }
 
   try {
     console.log(`  [${country.code}] ${page_config.name} ${blockImages ? '(이미지 차단)' : ''}`);
