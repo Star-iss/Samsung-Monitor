@@ -92,8 +92,9 @@ async function captureGNBHover(page, dir, countryCode) {
 }
 
 async function fullScroll(page) {
-  // CSS 애니메이션/트랜지션 강제 비활성화
+  // CSS 애니메이션/트랜지션 강제 비활성화 + 숨겨진 콘텐츠 강제 표시
   await page.evaluate(() => {
+    // 1. CSS 애니메이션/트랜지션 0초로
     const style = document.createElement('style');
     style.textContent = `
       *, *::before, *::after {
@@ -104,6 +105,49 @@ async function fullScroll(page) {
       }
     `;
     document.head.appendChild(style);
+
+    // 2. Waypoint 라이브러리 비활성화 (trigger queue 초기화 + disable)
+    if (window.Waypoint) {
+      try {
+        window.Waypoint.destroyAll();
+      } catch (e) {}
+    }
+    if (window.jQuery && window.jQuery.fn && window.jQuery.fn.waypoint) {
+      try {
+        window.jQuery('[data-waypoint]').waypoint('destroy');
+      } catch (e) {}
+    }
+
+    // 3. 스크롤 트리거로 나타나는 요소들 강제 표시
+    //    (보통 opacity:0, visibility:hidden, transform으로 숨겨져 있다가 클래스 추가로 나타남)
+    const hiddenSelectors = [
+      '[class*="animated"]',
+      '[class*="fade"]',
+      '[class*="reveal"]',
+      '[class*="animate"]',
+      '[class*="scroll-"]',
+      '[data-aos]',           // AOS 라이브러리
+      '[data-wow]',           // WOW.js
+      '.wow',
+      '.aos-init',
+    ];
+    hiddenSelectors.forEach(sel => {
+      document.querySelectorAll(sel).forEach(el => {
+        el.style.opacity = '1';
+        el.style.visibility = 'visible';
+        el.style.transform = 'none';
+        el.style.transition = 'none';
+        el.style.animation = 'none';
+        // AOS 클래스 강제 적용
+        el.classList.add('aos-animate');
+        el.setAttribute('data-aos-delay', '0');
+      });
+    });
+
+    // 4. IntersectionObserver 기반 lazy load 강제 트리거
+    if (window.AOS) {
+      try { window.AOS.refresh(); } catch (e) {}
+    }
   });
 
   // 스크롤하며 lazy load 트리거 + 이미지 로딩 대기
