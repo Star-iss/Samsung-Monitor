@@ -168,7 +168,8 @@ async function captureSite(context, country, page_config) {
       }
       try {
         await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
-        await page.waitForTimeout(4000);
+        // PF 페이지는 JS 렌더링이 느린 국가가 있어서 더 오래 대기
+        await page.waitForTimeout(blockImages ? 12000 : 6000);
 
         const bodyText = await page.evaluate(() => document.body.innerText.slice(0, 300));
         const isBlocked =
