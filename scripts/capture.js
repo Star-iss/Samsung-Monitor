@@ -92,6 +92,21 @@ async function captureGNBHover(page, dir, countryCode) {
 }
 
 async function fullScroll(page) {
+  // data-desktop-src / data-src 기반 lazy-load 이미지 강제 로드
+  await page.evaluate(() => {
+    document.querySelectorAll('img[data-desktop-src]').forEach(img => {
+      if (!img.src || img.classList.contains('lazy-load')) {
+        img.src = img.getAttribute('data-desktop-src');
+      }
+    });
+    document.querySelectorAll('img[data-src]').forEach(img => {
+      if (!img.src) img.src = img.getAttribute('data-src');
+    });
+    document.querySelectorAll('img[data-lazy-src]').forEach(img => {
+      if (!img.src) img.src = img.getAttribute('data-lazy-src');
+    });
+  });
+
   let previousHeight = 0;
   let attempts = 0;
 
