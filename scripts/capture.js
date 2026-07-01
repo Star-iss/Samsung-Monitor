@@ -150,12 +150,11 @@ async function fullScroll(page) {
     }
   });
 
-  // 스크롤하며 lazy load 트리거 + 이미지 로딩 대기
+  // 스크롤하며 lazy load 트리거
   let previousHeight = 0;
   let attempts = 0;
-  const MIN_CYCLES = 2; // 느린 국가 대응: 높이가 같아도 최소 2회는 스크롤
+  const MIN_CYCLES = 2;
 
-  // 페이지 맨 위로 마우스 포커스를 두고 시작 (wheel 이벤트가 페이지에 적용되도록)
   await page.mouse.move(400, 400);
 
   while (attempts < 20) {
@@ -164,79 +163,32 @@ async function fullScroll(page) {
     let pos = 0;
 
     while (pos < currentHeight) {
-      // 실제 휠 이벤트로 스크롤 (Waypoint 등 scroll-position 기반 라이브러리 대응)
       const before = await page.evaluate(() => window.scrollY);
       const targetDelta = Math.floor(viewportHeight * 0.8);
-      // 여러 번 작은 휠 입력으로 나눠서 자연스러운 스크롤 흉내
-      const steps = 6;
+
+      // 실제 휠 이벤트로 스크롤 (Waypoint 라이브러리 트리거)
+      const steps = 4;
       for (let s = 0; s < steps; s++) {
         await page.mouse.wheel(0, targetDelta / steps);
-        await page.waitForTimeout(80);
+        await page.waitForTimeout(50);
       }
+
       const after = await page.evaluate(() => window.scrollY);
       pos = after;
 
-      // 휠로 더 이상 안 움직이면(맨 아래 도달) 강제로 scrollTo 보정
+      // 맨 아래 도달 시 scrollTo 보정
       if (after === before) {
         await page.evaluate((y) => window.scrollTo(0, y), pos + targetDelta);
-        await page.evaluate(() => {
-          window.dispatchEvent(new Event('scroll'));
-        });
+        await page.evaluate(() => window.dispatchEvent(new Event('scroll')));
       }
 
-      await page.waitForTimeout(300);
+      // 각 스크롤 위치에서 렌더링 대기 (1초)
+      await page.waitForTimeout(1000);
 
-      // 뷰포트 내 <img> 태그 로딩 대기 (최대 5초)
-      await page.evaluate(() => {
-        const imgs = Array.from(document.querySelectorAll('img'));
-        return Promise.all(
-          imgs.map(img => {
-            if (img.complete && img.naturalWidth > 0) return Promise.resolve();
-            return new Promise(resolve => {
-              img.addEventListener('load', resolve, { once: true });
-              img.addEventListener('error', resolve, { once: true });
-              setTimeout(resolve, 5000);
-            });
-          })
-        );
-      });
-
-      // background-image 사용하는 뷰포트 내 요소들도 로딩 대기 (최대 4초)
-      await page.evaluate(() => {
-        const vh = window.innerHeight;
-        const all = Array.from(document.querySelectorAll('*'));
-        const targets = [];
-
-        for (const el of all) {
-          const style = getComputedStyle(el);
-          const bg = style.backgroundImage;
-          if (bg && bg !== 'none' && bg.includes('url(')) {
-            const rect = el.getBoundingClientRect();
-            if (rect.bottom >= -vh && rect.top <= vh * 2) {
-              const match = bg.match(/url\(["']?(.*?)["']?\)/);
-              if (match && match[1]) targets.push(match[1]);
-            }
-          }
-        }
-
-        return Promise.all(
-          targets.map(src => new Promise(resolve => {
-            const img = new Image();
-            img.onload = resolve;
-            img.onerror = resolve;
-            img.src = src;
-            setTimeout(resolve, 4000);
-          }))
-        );
-      });
-
-      await page.waitForTimeout(700);
-
-      // 더 이상 스크롤 안 움직이면 루프 탈출 (맨 아래 도달)
       if (pos >= currentHeight - viewportHeight - 5) break;
     }
 
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(2000);
     const newHeight = await page.evaluate(() => document.body.scrollHeight);
     console.log(`    Scroll ${attempts + 1}: ${previousHeight} → ${newHeight}px`);
     if (newHeight === previousHeight && attempts + 1 >= MIN_CYCLES) break;
@@ -245,7 +197,7 @@ async function fullScroll(page) {
   }
 
   await page.evaluate(() => window.scrollTo(0, 0));
-  await page.waitForTimeout(3000);
+  await page.waitForTimeout(2000);
 }
 
 async function captureSite(context, country, page_config) {
