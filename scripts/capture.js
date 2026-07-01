@@ -92,70 +92,8 @@ async function captureGNBHover(page, dir, countryCode) {
 }
 
 async function fullScroll(page) {
-  // CSS 애니메이션/트랜지션 강제 비활성화 + 숨겨진 콘텐츠 강제 표시
-  await page.evaluate(() => {
-    // 1. CSS 애니메이션/트랜지션 0초로
-    const style = document.createElement('style');
-    style.textContent = `
-      *, *::before, *::after {
-        animation-duration: 0s !important;
-        animation-delay: 0s !important;
-        transition-duration: 0s !important;
-        transition-delay: 0s !important;
-      }
-    `;
-    document.head.appendChild(style);
-
-    // 2. Waypoint 라이브러리 비활성화 (trigger queue 초기화 + disable)
-    if (window.Waypoint) {
-      try {
-        window.Waypoint.destroyAll();
-      } catch (e) {}
-    }
-    if (window.jQuery && window.jQuery.fn && window.jQuery.fn.waypoint) {
-      try {
-        window.jQuery('[data-waypoint]').waypoint('destroy');
-      } catch (e) {}
-    }
-
-    // 3. 스크롤 트리거로 나타나는 요소들 강제 표시
-    //    (보통 opacity:0, visibility:hidden, transform으로 숨겨져 있다가 클래스 추가로 나타남)
-    const hiddenSelectors = [
-      '[class*="animated"]',
-      '[class*="fade"]',
-      '[class*="reveal"]',
-      '[class*="animate"]',
-      '[class*="scroll-"]',
-      '[data-aos]',           // AOS 라이브러리
-      '[data-wow]',           // WOW.js
-      '.wow',
-      '.aos-init',
-    ];
-    hiddenSelectors.forEach(sel => {
-      document.querySelectorAll(sel).forEach(el => {
-        el.style.opacity = '1';
-        el.style.visibility = 'visible';
-        el.style.transform = 'none';
-        el.style.transition = 'none';
-        el.style.animation = 'none';
-        // AOS 클래스 강제 적용
-        el.classList.add('aos-animate');
-        el.setAttribute('data-aos-delay', '0');
-      });
-    });
-
-    // 4. IntersectionObserver 기반 lazy load 강제 트리거
-    if (window.AOS) {
-      try { window.AOS.refresh(); } catch (e) {}
-    }
-  });
-
-  // 스크롤하며 lazy load 트리거
   let previousHeight = 0;
   let attempts = 0;
-  const MIN_CYCLES = 2;
-
-  await page.mouse.move(400, 400);
 
   while (attempts < 20) {
     const currentHeight = await page.evaluate(() => document.body.scrollHeight);
@@ -163,41 +101,21 @@ async function fullScroll(page) {
     let pos = 0;
 
     while (pos < currentHeight) {
-      const before = await page.evaluate(() => window.scrollY);
-      const targetDelta = Math.floor(viewportHeight * 0.8);
-
-      // 실제 휠 이벤트로 스크롤 (Waypoint 라이브러리 트리거)
-      const steps = 4;
-      for (let s = 0; s < steps; s++) {
-        await page.mouse.wheel(0, targetDelta / steps);
-        await page.waitForTimeout(50);
-      }
-
-      const after = await page.evaluate(() => window.scrollY);
-      pos = after;
-
-      // 맨 아래 도달 시 scrollTo 보정
-      if (after === before) {
-        await page.evaluate((y) => window.scrollTo(0, y), pos + targetDelta);
-        await page.evaluate(() => window.dispatchEvent(new Event('scroll')));
-      }
-
-      // 각 스크롤 위치에서 렌더링 대기 (1초)
-      await page.waitForTimeout(1000);
-
-      if (pos >= currentHeight - viewportHeight - 5) break;
+      await page.evaluate((y) => window.scrollTo(0, y), pos);
+      await page.waitForTimeout(300);
+      pos += Math.floor(viewportHeight * 0.8);
     }
 
     await page.waitForTimeout(2000);
     const newHeight = await page.evaluate(() => document.body.scrollHeight);
     console.log(`    Scroll ${attempts + 1}: ${previousHeight} → ${newHeight}px`);
-    if (newHeight === previousHeight && attempts + 1 >= MIN_CYCLES) break;
+    if (newHeight === previousHeight) break;
     previousHeight = newHeight;
     attempts++;
   }
 
   await page.evaluate(() => window.scrollTo(0, 0));
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(1000);
 }
 
 async function captureSite(context, country, page_config) {
@@ -208,7 +126,7 @@ async function captureSite(context, country, page_config) {
 
   const page = await context.newPage();
 
-  // 홈페이지는 이미지 포함, Monitor Product Finder는 이미지 차단 (용량 절약)
+  // 홈페이지는 이미지 포함, Monitor PF는 이미지 차단 (용량 절약)
   const blockImages = page_config.id !== 'home';
 
   if (blockImages) {
@@ -225,13 +143,13 @@ async function captureSite(context, country, page_config) {
   try {
     console.log(`  [${country.code}] ${page_config.name} ${blockImages ? '(이미지 차단)' : ''}`);
 
-    // 봇 차단(Akamai 등) 감지 시 재시도하며 goto
+    // 봇 차단(Akamai 등) 감지 시 재시도
     let blocked = true;
     let lastErr = null;
     for (let retry = 0; retry < 3 && blocked; retry++) {
       if (retry > 0) {
         console.log(`    ⚠️ 차단 감지, 재시도 ${retry}/2...`);
-        await page.waitForTimeout(5000 * retry); // 점점 더 길게 대기 후 재시도
+        await page.waitForTimeout(5000 * retry);
       }
       try {
         await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
@@ -261,35 +179,27 @@ async function captureSite(context, country, page_config) {
     await acceptCookies(page);
     await page.waitForTimeout(2000);
 
-    // 네트워크 안정화 대기 (느린 국가 대응, 실패해도 무시하고 진행)
-    try {
-      await page.waitForLoadState('networkidle', { timeout: 10000 });
-    } catch {}
-
     // 상단 뷰
     await page.screenshot({ path: path.join(dir, `${today}-top.png`), fullPage: false });
 
     // GNB Hover (홈페이지만)
     if (page_config.gnbHover) {
       await captureGNBHover(page, dir, country.code);
-      // GNB 닫기: 빈 영역으로 마우스 이동 후 충분히 대기
       await page.mouse.move(68, 177);
       await page.waitForTimeout(500);
-      await page.mouse.move(0, 500); // 페이지 중앙으로 한 번 더 이동
-      await page.waitForTimeout(2000); // GNB 완전히 닫힐 때까지 대기
+      await page.mouse.move(0, 500);
+      await page.waitForTimeout(2000);
       await page.evaluate(() => window.scrollTo(0, 0));
-      // 메인 배너/캐러셀 렌더링 추가 대기
-      try {
-        await page.waitForLoadState('networkidle', { timeout: 5000 });
-      } catch {}
-      await page.waitForTimeout(3000);
+      await page.waitForTimeout(500);
     }
 
     // 전체 페이지
-    console.log(`    Scrolling...`);
-    await fullScroll(page);
-    await page.screenshot({ path: path.join(dir, `${today}-full.png`), fullPage: true });
-    console.log(`    Full screenshot done`);
+    if (page_config.captureFullPage) {
+      console.log(`    Scrolling...`);
+      await fullScroll(page);
+      await page.screenshot({ path: path.join(dir, `${today}-full.png`), fullPage: true });
+      console.log(`    Full screenshot done`);
+    }
 
     console.log(`    ✅ Done`);
     return { siteId, country: country.code, page: page_config.id, url, date: today, success: true };
