@@ -1,0 +1,18 @@
+[
+  {
+    "siteId": "nl-home",
+    "country": "nl",
+    "page": "home",
+    "url": "https://www.samsung.com/nl/",
+    "date": "2026-07-02",
+    "success": true
+  },
+  {
+    "siteId": "nl-monitors",
+    "country": "nl",
+    "page": "monitors",
+    "url": "https://www.samsung.com/nl/monitors/all-monitors/",
+    "date": "2026-07-02",
+    "success": true
+  }
+]
