@@ -162,12 +162,18 @@ async function captureSite(context, country, page_config) {
   const blockImages = page_config.id !== 'home';
 
   if (blockImages) {
-    await page.route('**/*.{png,jpg,jpeg,webp,gif,svg,avif}', route => {
-      const url = route.request().url();
-      if (url.includes('logo') || url.includes('gnb')) {
-        route.continue();
+    await page.route('**/*', route => {
+      const reqUrl = route.request().url();
+      const resourceType = route.request().resourceType();
+      // 이미지 리소스 중 samsung 도메인만 허용, 나머지 이미지는 차단
+      if (resourceType === 'image') {
+        if (reqUrl.includes('images.samsung.com') || reqUrl.includes('samsung.com')) {
+          route.continue();
+        } else {
+          route.abort();
+        }
       } else {
-        route.abort();
+        route.continue();
       }
     });
   }
