@@ -92,44 +92,79 @@ async function captureGNBHover(page, dir, countryCode) {
 }
 
 async function fullScroll(page) {
-  // data-desktop-src / data-src 기반 lazy-load 이미지 강제 로드
+  // Intersection Observer 가로채기 + data-src 강제 로드
   await page.evaluate(() => {
+    // 1. IntersectionObserver 가로채기 - 등록되는 모든 요소를 즉시 "뷰포트 진입"으로 처리
+    const OriginalObserver = window.IntersectionObserver;
+    window.IntersectionObserver = function(callback, options) {
+      const observer = new OriginalObserver(callback, options);
+      const originalObserve = observer.observe.bind(observer);
+      observer.observe = function(target) {
+        callback([{
+          isIntersecting: true,
+          intersectionRatio: 1,
+          target,
+          boundingClientRect: target.getBoundingClientRect(),
+          intersectionRect: target.getBoundingClientRect(),
+          rootBounds: null,
+          time: performance.now(),
+        }], observer);
+        originalObserve(target);
+      };
+      return observer;
+    };
+
+    // 2. data-desktop-src / data-src 속성 기반 이미지 강제 로드
     document.querySelectorAll('img[data-desktop-src]').forEach(img => {
-      if (!img.src || img.classList.contains('lazy-load')) {
-        img.src = img.getAttribute('data-desktop-src');
-      }
+      img.src = img.getAttribute('data-desktop-src');
     });
     document.querySelectorAll('img[data-src]').forEach(img => {
-      if (!img.src) img.src = img.getAttribute('data-src');
+      img.src = img.getAttribute('data-src');
     });
     document.querySelectorAll('img[data-lazy-src]').forEach(img => {
-      if (!img.src) img.src = img.getAttribute('data-lazy-src');
+      img.src = img.getAttribute('data-lazy-src');
+    });
+
+    // 3. lazy-load 클래스 제거
+    document.querySelectorAll('.lazy-load').forEach(el => {
+      el.classList.remove('lazy-load');
     });
   });
 
-  let previousHeight = 0;
-  let attempts = 0;
+  // body 클릭으로 포커스 확보
+  await page.mouse.click(760, 400);
+  await page.waitForTimeout(500);
 
-  while (attempts < 20) {
-    const currentHeight = await page.evaluate(() => document.body.scrollHeight);
+  let previousScrollY = -1;
+  let sameCount = 0;
+
+  while (sameCount < 3) {
+    const currentScrollY = await page.evaluate(() => window.scrollY);
+    const scrollHeight = await page.evaluate(() => document.body.scrollHeight);
     const viewportHeight = await page.evaluate(() => window.innerHeight);
-    let pos = 0;
 
-    while (pos < currentHeight) {
-      await page.evaluate((y) => window.scrollTo(0, y), pos);
-      await page.waitForTimeout(300);
-      pos += Math.floor(viewportHeight * 0.8);
+    // Space 키로 한 페이지씩 스크롤
+    await page.keyboard.press('Space');
+    await page.waitForTimeout(600);
+
+    await page.evaluate(() => {
+      window.dispatchEvent(new Event('scroll'));
+    });
+
+    const newScrollY = await page.evaluate(() => window.scrollY);
+    console.log(`    ScrollY: ${currentScrollY} → ${newScrollY} / ${scrollHeight}px`);
+
+    if (newScrollY === previousScrollY) {
+      sameCount++;
+    } else {
+      sameCount = 0;
     }
+    previousScrollY = newScrollY;
 
-    await page.waitForTimeout(2000);
-    const newHeight = await page.evaluate(() => document.body.scrollHeight);
-    console.log(`    Scroll ${attempts + 1}: ${previousHeight} → ${newHeight}px`);
-    if (newHeight === previousHeight) break;
-    previousHeight = newHeight;
-    attempts++;
+    if (newScrollY + viewportHeight >= scrollHeight - 10) break;
   }
 
-  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.keyboard.press('Home');
   await page.waitForTimeout(1000);
 }
 
@@ -243,6 +278,31 @@ async function main() {
     });
     await context.addInitScript(() => {
       Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+
+      // IntersectionObserver override: 모든 요소를 즉시 "뷰포트 진입"으로 처리
+      // Samsung PF 페이지의 스크롤 기반 lazy-render를 우회
+      const OriginalIntersectionObserver = window.IntersectionObserver;
+      window.IntersectionObserver = function(callback, options) {
+        const observer = new OriginalIntersectionObserver(callback, options);
+        const originalObserve = observer.observe.bind(observer);
+        observer.observe = (target) => {
+          // 즉시 intersecting으로 콜백 호출
+          try {
+            callback([{
+              isIntersecting: true,
+              intersectionRatio: 1,
+              target,
+              boundingClientRect: target.getBoundingClientRect(),
+              intersectionRect: target.getBoundingClientRect(),
+              rootBounds: null,
+              time: performance.now(),
+            }], observer);
+          } catch(e) {}
+          originalObserve(target);
+        };
+        return observer;
+      };
+      window.IntersectionObserver.prototype = OriginalIntersectionObserver.prototype;
     });
 
     for (const page_config of config.pages) {
