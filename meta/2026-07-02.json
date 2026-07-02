@@ -16,6 +16,22 @@
     "success": true
   },
   {
+    "siteId": "be_fr-home",
+    "country": "be_fr",
+    "page": "home",
+    "url": "https://www.samsung.com/be_fr/",
+    "date": "2026-07-02",
+    "success": true
+  },
+  {
+    "siteId": "be_fr-monitors",
+    "country": "be_fr",
+    "page": "monitors",
+    "url": "https://www.samsung.com/be_fr/monitors/all-monitors/",
+    "date": "2026-07-02",
+    "success": false
+  },
+  {
     "siteId": "es-home",
     "country": "es",
     "page": "home",
@@ -46,22 +62,6 @@
     "url": "https://www.samsung.com/fr/monitors/all-monitors/",
     "date": "2026-07-02",
     "success": false
-  },
-  {
-    "siteId": "no-home",
-    "country": "no",
-    "page": "home",
-    "url": "https://www.samsung.com/no/",
-    "date": "2026-07-02",
-    "success": true
-  },
-  {
-    "siteId": "no-monitors",
-    "country": "no",
-    "page": "monitors",
-    "url": "https://www.samsung.com/no/monitors/all-monitors/",
-    "date": "2026-07-02",
-    "success": true
   },
   {
     "siteId": "pt-home",
