@@ -94,7 +94,10 @@
   }
   .img-wrap img {
     width: 100%; display: block;
-    transition: opacity 0.2s ease;
+    /* transition 제거 - 즉각 반응을 위해 */
+  }
+  .img-wrap img.loading {
+    opacity: 0.4;
   }
   .no-img {
     text-align: center; padding: 40px; color: #aaa; font-size: 0.85rem;
@@ -1142,6 +1145,12 @@ function filterCountry(code, btn) {
       card.classList.add('hidden');
     }
   });
+  // 국가 전환 시 해당 국가 이미지 즉시 프리로드 (브라우저 캐시 워밍)
+  document.querySelectorAll('.card:not(.hidden) .img-wrap img').forEach(img => {
+    if (img.dataset.src && img.src !== img.dataset.src) {
+      img.src = img.dataset.src;
+    }
+  });
 }
 
 function changeDate(date) {
@@ -1149,6 +1158,7 @@ function changeDate(date) {
   config.countries.forEach(country => {
     config.pages.forEach(page => {
       const siteId = country.code + '-' + page.id;
+      const isCurrentCountry = country.code === currentCountry;
 
       function swapImg(wrap, newSrc, labelText) {
         if (!wrap) return;
@@ -1159,33 +1169,49 @@ function changeDate(date) {
         }
         const lbl = wrap.querySelector('.img-label');
         if (lbl) lbl.textContent = labelText;
-        const preloader = new Image();
-        preloader.onload = () => {
+
+        if (isCurrentCountry) {
+          // 현재 국가: 즉시 src 교체 (프리로드 없이 바로)
           img.src = newSrc;
           img.style.display = '';
           const noImg = wrap.querySelector('.no-img');
           if (noImg) noImg.remove();
-        };
-        preloader.onerror = () => {
-          img.style.display = 'none';
-          if (!wrap.querySelector('.no-img')) {
-            const p = document.createElement('p');
-            p.className = 'no-img';
-            p.textContent = '캡처 없음';
-            wrap.appendChild(p);
-          }
-        };
-        preloader.src = newSrc;
+          img.onerror = () => {
+            img.style.display = 'none';
+            if (!wrap.querySelector('.no-img')) {
+              const p = document.createElement('p');
+              p.className = 'no-img';
+              p.textContent = '캡처 없음';
+              wrap.appendChild(p);
+            }
+          };
+        } else {
+          // 다른 국가: 백그라운드에서 조용히 프리로드
+          const preloader = new Image();
+          preloader.onload = () => {
+            img.src = newSrc;
+            img.style.display = '';
+            const noImg = wrap.querySelector('.no-img');
+            if (noImg) noImg.remove();
+          };
+          preloader.onerror = () => {
+            img.style.display = 'none';
+            if (!wrap.querySelector('.no-img')) {
+              const p = document.createElement('p');
+              p.className = 'no-img';
+              p.textContent = '캡처 없음';
+              wrap.appendChild(p);
+            }
+          };
+          preloader.src = newSrc;
+        }
       }
 
-      // 상단 뷰
       swapImg(
         document.querySelector('#' + siteId + '-top .img-wrap'),
         'screenshots/' + siteId + '/' + date + '-top.png',
         date
       );
-
-      // GNB Hover
       if (page.gnbHover) {
         swapImg(
           document.querySelector('#' + siteId + '-gnb .img-wrap'),
@@ -1193,8 +1219,6 @@ function changeDate(date) {
           'GNB Hover · ' + date
         );
       }
-
-      // 전체 페이지
       if (page.captureFullPage) {
         swapImg(
           document.querySelector('#' + siteId + '-full .img-wrap'),
@@ -1203,7 +1227,7 @@ function changeDate(date) {
         );
       }
 
-      // footer 배지 링크 업데이트
+      // 배지 링크 업데이트
       const card = document.querySelector('[data-country="' + country.code + '"][data-id]') ||
         document.querySelector('[data-country="' + country.code + '"]');
       if (card) {
