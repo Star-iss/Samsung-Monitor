@@ -165,6 +165,9 @@ const html = `<!DOCTYPE html>
   }
   .modal-tab-btn.active { background: #1428A0; color: white; border-color: #1428A0; }
   .modal img { width: 100%; border: 1px solid #eee; border-radius: 8px; }
+  .modal-loading {
+    text-align: center; padding: 60px; color: #888; font-size: 0.95rem;
+  }
   .open-btn {
     display: inline-block; margin-top: 10px; background: #1428A0; color: white;
     padding: 7px 16px; border-radius: 8px; font-size: 0.82rem; text-decoration: none;
@@ -439,10 +442,46 @@ function openModal(siteId, type) {
 function showModalImg(siteId, date, type) {
   const suffix = type === 'full' ? 'full' : type === 'gnb' ? 'gnb-hover' : 'top';
   const src = \`screenshots/\${siteId}/\${date}-\${suffix}.png\`;
-  document.getElementById('modalContent').innerHTML = \`
-    <img src="\${src}" onerror="this.src=''" alt="\${type}"/>
-    <br/><a href="\${src}" target="_blank" class="open-btn">원본 크기로 보기 ↗</a>
-  \`;
+  const content = document.getElementById('modalContent');
+
+  // 기존 img 태그 재사용 (새로 innerHTML 교체하면 캐시 무효화됨)
+  let img = content.querySelector('img');
+  let link = content.querySelector('a.open-btn');
+
+  if (!img) {
+    // 처음 열 때만 구조 생성
+    content.innerHTML = \`
+      <div class="modal-loading">⏳ 로딩 중...</div>
+      <img style="display:none" alt=""/>
+      <br/><a href="" target="_blank" class="open-btn" style="display:none">원본 크기로 보기 ↗</a>
+    \`;
+    img = content.querySelector('img');
+    link = content.querySelector('a.open-btn');
+  }
+
+  const loading = content.querySelector('.modal-loading');
+  if (loading) loading.style.display = 'block';
+  img.style.display = 'none';
+  if (link) link.style.display = 'none';
+
+  // 이미 같은 src면 즉시 표시 (캐시 활용)
+  if (img.src === location.origin + '/' + src || img.src === src) {
+    if (loading) loading.style.display = 'none';
+    img.style.display = 'block';
+    if (link) link.style.display = 'inline-block';
+    return;
+  }
+
+  img.onload = () => {
+    if (loading) loading.style.display = 'none';
+    img.style.display = 'block';
+    if (link) { link.href = src; link.style.display = 'inline-block'; }
+  };
+  img.onerror = () => {
+    if (loading) loading.textContent = '❌ 이미지를 불러올 수 없습니다.';
+  };
+  img.src = src;
+  if (link) link.href = src;
 }
 
 function switchModalTab(btn, siteId, type) {
