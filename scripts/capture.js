@@ -92,44 +92,25 @@ async function captureGNBHover(page, dir, countryCode) {
 }
 
 async function fullScroll(page) {
-  // Intersection Observer 가로채기 + data-src 강제 로드
-  await page.evaluate(() => {
-    // 1. IntersectionObserver 가로채기 - 등록되는 모든 요소를 즉시 "뷰포트 진입"으로 처리
-    const OriginalObserver = window.IntersectionObserver;
-    window.IntersectionObserver = function(callback, options) {
-      const observer = new OriginalObserver(callback, options);
-      const originalObserve = observer.observe.bind(observer);
-      observer.observe = function(target) {
-        callback([{
-          isIntersecting: true,
-          intersectionRatio: 1,
-          target,
-          boundingClientRect: target.getBoundingClientRect(),
-          intersectionRect: target.getBoundingClientRect(),
-          rootBounds: null,
-          time: performance.now(),
-        }], observer);
-        originalObserve(target);
-      };
-      return observer;
-    };
-
-    // 2. data-desktop-src / data-src 속성 기반 이미지 강제 로드
-    document.querySelectorAll('img[data-desktop-src]').forEach(img => {
-      img.src = img.getAttribute('data-desktop-src');
+  // data-desktop-src / data-src 기반 lazy-load 이미지 강제 로드 (실패해도 무시)
+  try {
+    await page.evaluate(() => {
+      document.querySelectorAll('img[data-desktop-src]').forEach(img => {
+        img.src = img.getAttribute('data-desktop-src');
+      });
+      document.querySelectorAll('img[data-src]').forEach(img => {
+        img.src = img.getAttribute('data-src');
+      });
+      document.querySelectorAll('img[data-lazy-src]').forEach(img => {
+        img.src = img.getAttribute('data-lazy-src');
+      });
+      document.querySelectorAll('.lazy-load').forEach(el => {
+        el.classList.remove('lazy-load');
+      });
     });
-    document.querySelectorAll('img[data-src]').forEach(img => {
-      img.src = img.getAttribute('data-src');
-    });
-    document.querySelectorAll('img[data-lazy-src]').forEach(img => {
-      img.src = img.getAttribute('data-lazy-src');
-    });
-
-    // 3. lazy-load 클래스 제거
-    document.querySelectorAll('.lazy-load').forEach(el => {
-      el.classList.remove('lazy-load');
-    });
-  });
+  } catch (e) {
+    console.log(`    ⚠️ lazy-load 강제 로드 실패 (무시): ${e.message}`);
+  }
 
   // body 클릭으로 포커스 확보
   await page.mouse.click(760, 400);
@@ -143,13 +124,9 @@ async function fullScroll(page) {
     const scrollHeight = await page.evaluate(() => document.body.scrollHeight);
     const viewportHeight = await page.evaluate(() => window.innerHeight);
 
-    // Space 키로 한 페이지씩 스크롤
+    // Space 키로 한 페이지씩 스크롤 (네이티브 스크롤 이벤트 발생)
     await page.keyboard.press('Space');
     await page.waitForTimeout(600);
-
-    await page.evaluate(() => {
-      window.dispatchEvent(new Event('scroll'));
-    });
 
     const newScrollY = await page.evaluate(() => window.scrollY);
     console.log(`    ScrollY: ${currentScrollY} → ${newScrollY} / ${scrollHeight}px`);
