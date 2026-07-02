@@ -157,29 +157,36 @@ async function captureSite(context, country, page_config) {
   fs.mkdirSync(dir, { recursive: true });
 
   const page = await context.newPage();
+  const targetPath = page_config.path.replace(/\/$/, '');
 
-  // 홈페이지는 이미지 포함, Monitor PF는 이미지 차단 (용량 절약)
-  const blockImages = page_config.id !== 'home';
+  // ✅ 단일 통합 라우터: 네비게이션 차단 + 이미지 필터 (충돌 없음)
+  await page.route('**', async (route) => {
+    const req = route.request();
+    const reqUrl = req.url();
+    const resourceType = req.resourceType();
 
-  if (blockImages) {
-    await page.route('**/*', route => {
-      const reqUrl = route.request().url();
-      const resourceType = route.request().resourceType();
-      // 이미지 리소스 중 samsung 도메인만 허용, 나머지 이미지는 차단
-      if (resourceType === 'image') {
-        if (reqUrl.includes('images.samsung.com') || reqUrl.includes('samsung.com')) {
-          route.continue();
-        } else {
-          route.abort();
-        }
+    // 1. 메인 프레임 네비게이션 차단: 목표 URL이 아닌 곳으로의 이동 막기
+    if (req.isNavigationRequest() && req.frame() === page.mainFrame()) {
+      if (reqUrl.includes(targetPath)) {
+        await route.continue();
       } else {
-        route.continue();
+        console.log(`    🚫 리다이렉트 차단: ${reqUrl}`);
+        await route.abort();
       }
-    });
-  }
+      return;
+    }
+
+    // 2. 타사 이미지만 차단 (Samsung 이미지는 허용해서 제품 카드 표시)
+    if (resourceType === 'image' && !reqUrl.includes('samsung.com')) {
+      await route.abort();
+      return;
+    }
+
+    await route.continue();
+  });
 
   try {
-    console.log(`  [${country.code}] ${page_config.name} ${blockImages ? '(이미지 차단)' : ''}`);
+    console.log(`  [${country.code}] ${page_config.name}`);
 
     // 봇 차단(Akamai 등) 감지 시 재시도
     let blocked = true;
@@ -191,8 +198,7 @@ async function captureSite(context, country, page_config) {
       }
       try {
         await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
-        // PF 페이지는 JS 렌더링이 느린 국가가 있어서 더 오래 대기
-        await page.waitForTimeout(blockImages ? 12000 : 6000);
+        await page.waitForTimeout(page_config.id !== 'home' ? 12000 : 6000);
 
         const bodyText = await page.evaluate(() => document.body.innerText.slice(0, 300));
         const isBlocked =
@@ -217,29 +223,6 @@ async function captureSite(context, country, page_config) {
 
     await acceptCookies(page);
     await page.waitForTimeout(2000);
-
-    // 쿠키 팝업 처리 후 URL이 바뀌었으면 원래 URL로 복귀
-    const currentUrl = page.url();
-    if (!currentUrl.includes(page_config.path.replace(/\/$/, ''))) {
-      console.log(`    ⚠️ URL 변경 감지 (${currentUrl}) → 원래 URL로 복귀`);
-      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
-      await page.waitForTimeout(blockImages ? 8000 : 4000);
-    }
-
-    // ✅ 캡처 중 리다이렉트 완전 차단 (스크롤 중 Samsung이 다른 페이지로 이동하는 것 방지)
-    const targetPath = page_config.path.replace(/\/$/, '');
-    await page.route('**', async (route) => {
-      if (
-        route.request().isNavigationRequest() &&
-        route.request().frame() === page.mainFrame() &&
-        !route.request().url().includes(targetPath)
-      ) {
-        console.log(`    🚫 리다이렉트 차단: ${route.request().url()}`);
-        route.abort();
-        return;
-      }
-      route.continue();
-    });
 
     // 상단 뷰
     await page.screenshot({ path: path.join(dir, `${today}-top.png`), fullPage: false });
