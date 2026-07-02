@@ -64,6 +64,22 @@
     "success": false
   },
   {
+    "siteId": "it-home",
+    "country": "it",
+    "page": "home",
+    "url": "https://www.samsung.com/it/",
+    "date": "2026-07-02",
+    "success": true
+  },
+  {
+    "siteId": "it-monitors",
+    "country": "it",
+    "page": "monitors",
+    "url": "https://www.samsung.com/it/monitors/all-monitors/",
+    "date": "2026-07-02",
+    "success": true
+  },
+  {
     "siteId": "pt-home",
     "country": "pt",
     "page": "home",
