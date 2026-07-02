@@ -116,33 +116,38 @@ async function fullScroll(page) {
   await page.mouse.click(760, 400);
   await page.waitForTimeout(500);
 
-  let previousScrollY = -1;
-  let sameCount = 0;
+  try {
+    let previousScrollY = -1;
+    let sameCount = 0;
 
-  while (sameCount < 3) {
-    const currentScrollY = await page.evaluate(() => window.scrollY);
-    const scrollHeight = await page.evaluate(() => document.body.scrollHeight);
-    const viewportHeight = await page.evaluate(() => window.innerHeight);
+    while (sameCount < 3) {
+      const currentScrollY = await page.evaluate(() => window.scrollY);
+      const scrollHeight = await page.evaluate(() => document.body.scrollHeight);
+      const viewportHeight = await page.evaluate(() => window.innerHeight);
 
-    // Space 키로 한 페이지씩 스크롤 (네이티브 스크롤 이벤트 발생)
-    await page.keyboard.press('Space');
-    await page.waitForTimeout(600);
+      await page.keyboard.press('Space');
+      await page.waitForTimeout(600);
 
-    const newScrollY = await page.evaluate(() => window.scrollY);
-    console.log(`    ScrollY: ${currentScrollY} → ${newScrollY} / ${scrollHeight}px`);
+      const newScrollY = await page.evaluate(() => window.scrollY);
+      console.log(`    ScrollY: ${currentScrollY} → ${newScrollY} / ${scrollHeight}px`);
 
-    if (newScrollY === previousScrollY) {
-      sameCount++;
-    } else {
-      sameCount = 0;
+      if (newScrollY === previousScrollY) {
+        sameCount++;
+      } else {
+        sameCount = 0;
+      }
+      previousScrollY = newScrollY;
+
+      if (newScrollY + viewportHeight >= scrollHeight - 10) break;
     }
-    previousScrollY = newScrollY;
-
-    if (newScrollY + viewportHeight >= scrollHeight - 10) break;
+  } catch (e) {
+    console.log(`    ⚠️ 스크롤 중 페이지 변경 감지, 현재 상태로 캡처 진행: ${e.message}`);
   }
 
-  await page.keyboard.press('Home');
-  await page.waitForTimeout(1000);
+  try {
+    await page.keyboard.press('Home');
+    await page.waitForTimeout(1000);
+  } catch (e) {}
 }
 
 async function captureSite(context, country, page_config) {
@@ -207,6 +212,14 @@ async function captureSite(context, country, page_config) {
     await acceptCookies(page);
     await page.waitForTimeout(2000);
 
+    // 쿠키 팝업 처리 후 URL이 바뀌었으면 원래 URL로 복귀 (BE 등 리다이렉트 방지)
+    const currentUrl = page.url();
+    if (!currentUrl.includes(page_config.path.replace(/\/$/, ''))) {
+      console.log(`    ⚠️ URL 변경 감지 (${currentUrl}) → 원래 URL로 복귀`);
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+      await page.waitForTimeout(blockImages ? 8000 : 4000);
+    }
+
     // 상단 뷰
     await page.screenshot({ path: path.join(dir, `${today}-top.png`), fullPage: false });
 
@@ -253,17 +266,46 @@ async function main() {
       viewport: { width: 1440, height: 900 },
       extraHTTPHeaders: { 'Accept-Language': 'en-US,en;q=0.9' }
     });
+
+    // Samsung 지역/언어 팝업 쿠키 미리 세팅 (팝업 억제)
+    await context.addCookies([
+      { name: 'samsung_localization', value: '1', domain: '.samsung.com', path: '/' },
+      { name: 'gdpr_consent', value: '1', domain: '.samsung.com', path: '/' },
+      { name: 'cookie_consent', value: 'accepted', domain: '.samsung.com', path: '/' },
+      { name: 'countryCode', value: country.code.replace('_', '-'), domain: '.samsung.com', path: '/' },
+    ]);
+
     await context.addInitScript(() => {
       Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
 
+      // Samsung 지역/언어 선택 팝업 숨김 처리
+      const hidePopups = () => {
+        const popupSelectors = [
+          '.modal-selector', '.country-selector', '.location-selector',
+          '[class*="country-layer"]', '[class*="location-layer"]',
+          '[class*="languageSelector"]', '[id*="countrySelector"]',
+          '.truste_overlay', '#truste-consent-track',
+        ];
+        popupSelectors.forEach(sel => {
+          document.querySelectorAll(sel).forEach(el => {
+            el.style.display = 'none';
+          });
+        });
+      };
+
+      // DOM 로드 즉시 + 변경될 때마다 팝업 숨김
+      document.addEventListener('DOMContentLoaded', hidePopups);
+      const observer = new MutationObserver(hidePopups);
+      document.addEventListener('DOMContentLoaded', () => {
+        observer.observe(document.body, { childList: true, subtree: true });
+      });
+
       // IntersectionObserver override: 모든 요소를 즉시 "뷰포트 진입"으로 처리
-      // Samsung PF 페이지의 스크롤 기반 lazy-render를 우회
       const OriginalIntersectionObserver = window.IntersectionObserver;
       window.IntersectionObserver = function(callback, options) {
         const observer = new OriginalIntersectionObserver(callback, options);
         const originalObserve = observer.observe.bind(observer);
         observer.observe = (target) => {
-          // 즉시 intersecting으로 콜백 호출
           try {
             callback([{
               isIntersecting: true,
