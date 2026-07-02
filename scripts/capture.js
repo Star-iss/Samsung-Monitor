@@ -218,13 +218,28 @@ async function captureSite(context, country, page_config) {
     await acceptCookies(page);
     await page.waitForTimeout(2000);
 
-    // 쿠키 팝업 처리 후 URL이 바뀌었으면 원래 URL로 복귀 (BE 등 리다이렉트 방지)
+    // 쿠키 팝업 처리 후 URL이 바뀌었으면 원래 URL로 복귀
     const currentUrl = page.url();
     if (!currentUrl.includes(page_config.path.replace(/\/$/, ''))) {
       console.log(`    ⚠️ URL 변경 감지 (${currentUrl}) → 원래 URL로 복귀`);
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
       await page.waitForTimeout(blockImages ? 8000 : 4000);
     }
+
+    // ✅ 캡처 중 리다이렉트 완전 차단 (스크롤 중 Samsung이 다른 페이지로 이동하는 것 방지)
+    const targetPath = page_config.path.replace(/\/$/, '');
+    await page.route('**', async (route) => {
+      if (
+        route.request().isNavigationRequest() &&
+        route.request().frame() === page.mainFrame() &&
+        !route.request().url().includes(targetPath)
+      ) {
+        console.log(`    🚫 리다이렉트 차단: ${route.request().url()}`);
+        route.abort();
+        return;
+      }
+      route.continue();
+    });
 
     // 상단 뷰
     await page.screenshot({ path: path.join(dir, `${today}-top.png`), fullPage: false });
