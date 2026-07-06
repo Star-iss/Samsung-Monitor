@@ -159,15 +159,17 @@ async function captureSite(context, country, page_config) {
   const page = await context.newPage();
   const targetPath = page_config.path.replace(/\/$/, '');
 
-  // ✅ 단일 통합 라우터: 네비게이션 차단 + 이미지 필터 (충돌 없음)
+  // 네비게이션 차단 활성화 플래그 (초기 로드는 허용, 스크롤 시작 직전부터 차단)
+  let blockNavigation = false;
+
   await page.route('**', async (route) => {
     const req = route.request();
     const reqUrl = req.url();
     const resourceType = req.resourceType();
 
-    // 1. 메인 프레임 네비게이션 차단: 목표 URL이 아닌 곳으로의 이동 막기
-    if (req.isNavigationRequest() && req.frame() === page.mainFrame()) {
-      if (reqUrl.includes(targetPath)) {
+    // 스크롤 시작 후에만 잘못된 URL로의 이동 차단
+    if (blockNavigation && req.isNavigationRequest() && req.frame() === page.mainFrame()) {
+      if (reqUrl.includes(targetPath) || targetPath === '') {
         await route.continue();
       } else {
         console.log(`    🚫 리다이렉트 차단: ${reqUrl}`);
@@ -176,7 +178,7 @@ async function captureSite(context, country, page_config) {
       return;
     }
 
-    // 2. 타사 이미지만 차단 (Samsung 이미지는 허용해서 제품 카드 표시)
+    // 타사 이미지 차단 (Samsung 이미지는 허용)
     if (resourceType === 'image' && !reqUrl.includes('samsung.com')) {
       await route.abort();
       return;
@@ -241,6 +243,7 @@ async function captureSite(context, country, page_config) {
     // 전체 페이지
     if (page_config.captureFullPage) {
       console.log(`    Scrolling...`);
+      blockNavigation = true; // 스크롤 시작 전에 리다이렉트 차단 활성화
       await fullScroll(page);
       await page.screenshot({ path: path.join(dir, `${today}-full.png`), fullPage: true });
       console.log(`    Full screenshot done`);
