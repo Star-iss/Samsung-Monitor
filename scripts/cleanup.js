@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const KEEP_DAYS = 14;
+const KEEP_DAYS = 7;
 const screenshotsDir = path.join('docs', 'screenshots');
 const metaDir = path.join('docs', 'meta');
 const indexPath = path.join(metaDir, 'index.json');
