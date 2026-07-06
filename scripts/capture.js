@@ -242,9 +242,35 @@ async function captureSite(context, country, page_config) {
 
     // 전체 페이지
     if (page_config.captureFullPage) {
-      console.log(`    Scrolling...`);
-      blockNavigation = true; // 스크롤 시작 전에 리다이렉트 차단 활성화
-      await fullScroll(page);
+      if (page_config.id === 'home') {
+        // 홈페이지: Space 키 스크롤로 lazy-load 트리거 후 캡처
+        console.log(`    Scrolling...`);
+        blockNavigation = true;
+        await fullScroll(page);
+      } else {
+        // PF 페이지: 스크롤 없이 바로 캡처 (스크롤 중 리다이렉트 방지)
+        // IntersectionObserver override(addInitScript)가 lazy-load 처리
+        console.log(`    Full capture (no scroll)...`);
+        try {
+          await page.evaluate(() => {
+            document.querySelectorAll('img[data-desktop-src]').forEach(img => {
+              img.src = img.getAttribute('data-desktop-src');
+            });
+            document.querySelectorAll('img[data-src]').forEach(img => {
+              img.src = img.getAttribute('data-src');
+            });
+            document.querySelectorAll('img[data-lazy-src]').forEach(img => {
+              img.src = img.getAttribute('data-lazy-src');
+            });
+            document.querySelectorAll('.lazy-load').forEach(el => {
+              el.classList.remove('lazy-load');
+            });
+          });
+        } catch (e) {
+          console.log(`    ⚠️ lazy-load 처리 실패 (무시): ${e.message}`);
+        }
+        await page.waitForTimeout(3000); // 이미지 로딩 대기
+      }
       await page.screenshot({ path: path.join(dir, `${today}-full.png`), fullPage: true });
       console.log(`    Full screenshot done`);
     }
