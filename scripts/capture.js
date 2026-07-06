@@ -200,7 +200,8 @@ async function captureSite(context, country, page_config) {
       }
       try {
         await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
-        await page.waitForTimeout(page_config.id !== 'home' ? 12000 : 6000);
+        // PF는 초기 대기를 짧게! (12초 대기 중 redirect 타이머가 임박해짐)
+        await page.waitForTimeout(page_config.id !== 'home' ? 4000 : 6000);
 
         const bodyText = await page.evaluate(() => document.body.innerText.slice(0, 300));
         const isBlocked =
@@ -248,9 +249,77 @@ async function captureSite(context, country, page_config) {
         blockNavigation = true;
         await fullScroll(page);
       } else {
-        // PF 페이지: 스크롤 없이 바로 캡처 (스크롤 중 리다이렉트 방지)
-        // IntersectionObserver override(addInitScript)가 lazy-load 처리
-        console.log(`    Full capture (no scroll)...`);
+        // PF 페이지: evaluate 내부에서 빠른 스크롤로 카드 DOM 생성 트리거
+        // round-trip 없이 브라우저 JS 엔진 내에서 직접 실행 → redirect 전에 완료
+        console.log(`    PF scroll (fast internal)...`);
+        try {
+          await page.evaluate(async () => {
+            await new Promise((resolve) => {
+              const STEP = 500;        // 스크롤 step (px)
+              const INTERVAL = 120;    // step 간격 (ms) - 너무 빠르면 Samsung JS가 못 따라옴
+              const TIMEOUT = 18000;   // 최대 허용 시간 (ms)
+              const STABLE_MS = 1500;  // 카드 수 안정화 판단 시간
+
+              let pos = 0;
+              let lastCardCount = 0;
+              let stableTimer = null;
+              let done = false;
+
+              const finish = () => {
+                if (done) return;
+                done = true;
+                observer.disconnect();
+                window.scrollTo(0, 0);
+                setTimeout(resolve, 800);
+              };
+
+              // MutationObserver로 카드 DOM 생성 감지
+              const observer = new MutationObserver(() => {
+                const count = document.querySelectorAll(
+                  '[class*="pd21"], [class*="product-card"], [class*="item-product"], [class*="card-product"]'
+                ).length;
+                if (count > lastCardCount) {
+                  lastCardCount = count;
+                  clearTimeout(stableTimer);
+                  stableTimer = setTimeout(finish, STABLE_MS);
+                }
+              });
+              observer.observe(document.body, { childList: true, subtree: true });
+
+              // 전체 타임아웃
+              const globalTimer = setTimeout(finish, TIMEOUT);
+
+              // 스크롤 루프
+              const step = () => {
+                if (done) return;
+                const h = document.body.scrollHeight;
+                const vh = window.innerHeight;
+
+                window.scrollTo(0, pos);
+                // scroll + wheel 이벤트 모두 dispatch (Samsung JS가 어느 것을 듣는지 불확실)
+                window.dispatchEvent(new Event('scroll', { bubbles: true }));
+                window.dispatchEvent(new WheelEvent('wheel', {
+                  deltaY: STEP, bubbles: true, cancelable: true
+                }));
+
+                pos += STEP;
+
+                if (pos >= h + vh) {
+                  clearTimeout(globalTimer);
+                  finish();
+                } else {
+                  setTimeout(step, INTERVAL);
+                }
+              };
+
+              step();
+            });
+          });
+        } catch (e) {
+          console.log(`    ⚠️ PF 스크롤 중 페이지 변경 감지 (현재 상태로 캡처): ${e.message}`);
+        }
+
+        // data-src 강제 적용 (스크롤 완료 후)
         try {
           await page.evaluate(() => {
             document.querySelectorAll('img[data-desktop-src]').forEach(img => {
@@ -259,17 +328,10 @@ async function captureSite(context, country, page_config) {
             document.querySelectorAll('img[data-src]').forEach(img => {
               img.src = img.getAttribute('data-src');
             });
-            document.querySelectorAll('img[data-lazy-src]').forEach(img => {
-              img.src = img.getAttribute('data-lazy-src');
-            });
-            document.querySelectorAll('.lazy-load').forEach(el => {
-              el.classList.remove('lazy-load');
-            });
           });
-        } catch (e) {
-          console.log(`    ⚠️ lazy-load 처리 실패 (무시): ${e.message}`);
-        }
-        await page.waitForTimeout(3000); // 이미지 로딩 대기
+        } catch (e) {}
+
+        await page.waitForTimeout(2000);
       }
       await page.screenshot({ path: path.join(dir, `${today}-full.png`), fullPage: true });
       console.log(`    Full screenshot done`);
