@@ -91,6 +91,275 @@ async function captureGNBHover(page, dir, countryCode) {
   }
 }
 
+// ── PF 디버깅 헬퍼 함수들 ──────────────────────────────────────────
+
+// 스크롤 전/중/후 페이지 상태 스냅샷 (언어 무관)
+async function logPageState(page, label) {
+  try {
+    const state = await page.evaluate(() => {
+      return {
+        href: location.href,
+        readyState: document.readyState,
+        scrollY: window.scrollY,
+        bodyScrollHeight: document.body.scrollHeight,
+        docScrollHeight: document.documentElement.scrollHeight,
+        viewportHeight: window.innerHeight,
+        imgCount: document.querySelectorAll('img').length,
+        imgLoadedCount: Array.from(document.querySelectorAll('img'))
+          .filter(i => i.complete && i.naturalWidth > 0).length,
+        visibleTextSample: document.body.innerText.slice(0, 150).replace(/\s+/g, ' '),
+      };
+    });
+    console.log(`    [STATE:${label}]`, JSON.stringify(state));
+  } catch (e) {
+    console.log(`    [STATE:${label}] ⚠️ evaluate 실패: ${e.message}`);
+  }
+}
+
+// 언어 무관 Product Card 존재 여부 탐지 (통화기호 + 반복 형제 구조)
+async function probeProductCards(page, label) {
+  try {
+    const probe = await page.evaluate(() => {
+      const priceLike = document.body.innerText.match(/[\d.,]+\s?(€|\$|£|kr|TL|zł|₩)/g) || [];
+
+      function findRepeatedSiblingGroups() {
+        const groups = [];
+        document.querySelectorAll('*').forEach(parent => {
+          const children = Array.from(parent.children);
+          if (children.length < 5) return;
+          const classMap = {};
+          children.forEach(c => {
+            const key = c.tagName + ':' + (c.className || '').toString().split(' ')[0];
+            classMap[key] = (classMap[key] || 0) + 1;
+          });
+          Object.entries(classMap).forEach(([key, count]) => {
+            if (count >= 5) {
+              groups.push({
+                parentTag: parent.tagName,
+                parentClass: (parent.className || '').toString().slice(0, 50),
+                key, count,
+              });
+            }
+          });
+        });
+        return groups;
+      }
+
+      return {
+        imgCount: document.querySelectorAll('img').length,
+        imgWithSrcCount: document.querySelectorAll('img[src]:not([src=""])').length,
+        priceLikeMatches: priceLike.length,
+        priceSample: priceLike.slice(0, 5),
+        repeatedGroups: findRepeatedSiblingGroups().slice(0, 8),
+        bodyTextLength: document.body.innerText.length,
+      };
+    });
+    console.log(`    [CARD PROBE:${label}]`, JSON.stringify(probe));
+    return probe;
+  } catch (e) {
+    console.log(`    [CARD PROBE:${label}] ⚠️ evaluate 실패: ${e.message}`);
+    return null;
+  }
+}
+
+// window가 아닌 내부 scroll container 후보 탐지
+async function probeScrollContainers(page) {
+  try {
+    const containers = await page.evaluate(() => {
+      const all = Array.from(document.querySelectorAll('*'));
+      return all
+        .filter(el => {
+          const style = getComputedStyle(el);
+          return (
+            (style.overflowY === 'auto' || style.overflowY === 'scroll') &&
+            el.scrollHeight > el.clientHeight + 50
+          );
+        })
+        .map(el => ({
+          tag: el.tagName,
+          cls: (el.className || '').toString().slice(0, 80),
+          id: el.id,
+          scrollHeight: el.scrollHeight,
+          clientHeight: el.clientHeight,
+          scrollTop: el.scrollTop,
+        }))
+        .sort((a, b) => b.scrollHeight - a.scrollHeight)
+        .slice(0, 8);
+    });
+    console.log(`    [SCROLL CONTAINER 후보]`, JSON.stringify(containers));
+    return containers;
+  } catch (e) {
+    console.log(`    [SCROLL CONTAINER 후보] ⚠️ evaluate 실패: ${e.message}`);
+    return [];
+  }
+}
+
+// 가장 큰 scroll container 위에 마우스를 놓고 사람처럼 wheel 스크롤
+async function humanLikeWheelScroll(page, { maxMs = 8000, step = 700, pauseMs = 180 } = {}) {
+  let box = null;
+  try {
+    const target = await page.evaluateHandle(() => {
+      const all = Array.from(document.querySelectorAll('*'));
+      let best = document.scrollingElement || document.documentElement;
+      let bestScrollable = best.scrollHeight - best.clientHeight;
+      all.forEach(el => {
+        const style = getComputedStyle(el);
+        if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
+          const scrollable = el.scrollHeight - el.clientHeight;
+          if (scrollable > bestScrollable) {
+            bestScrollable = scrollable;
+            best = el;
+          }
+        }
+      });
+      return best;
+    });
+    const el = target.asElement();
+    if (el) box = await el.boundingBox();
+  } catch (e) {
+    console.log(`    ⚠️ scroll container 탐색 실패: ${e.message}`);
+  }
+
+  if (box) {
+    await page.mouse.move(box.x + box.width / 2, box.y + Math.min(box.height / 2, 400));
+    console.log(`    마우스를 scroll container 위로 이동: (${Math.round(box.x)}, ${Math.round(box.y)})`);
+  } else {
+    await page.mouse.move(720, 400);
+    console.log(`    scroll container 없음 → 화면 중앙에서 스크롤`);
+  }
+
+  const start = Date.now();
+  let lastMetric = -1;
+  let stable = 0;
+
+  while (Date.now() - start < maxMs) {
+    await page.mouse.wheel(0, step);
+    await page.waitForTimeout(pauseMs);
+
+    let metric;
+    try {
+      metric = await page.evaluate(() => {
+        const all = Array.from(document.querySelectorAll('*'));
+        let maxScrollTop = 0;
+        all.forEach(el => {
+          const style = getComputedStyle(el);
+          if ((style.overflowY === 'auto' || style.overflowY === 'scroll') && el.scrollTop > maxScrollTop) {
+            maxScrollTop = el.scrollTop;
+          }
+        });
+        return document.body.scrollHeight + window.scrollY + maxScrollTop;
+      });
+    } catch (e) {
+      console.log(`    ⚠️ 스크롤 중 컨텍스트 소실: ${e.message}`);
+      break;
+    }
+
+    if (metric === lastMetric) {
+      stable++;
+      if (stable >= 4) break;
+    } else {
+      stable = 0;
+      lastMetric = metric;
+    }
+  }
+}
+
+// Product Card가 실제로 렌더링될 때까지 대기 (언어 무관, 가격 텍스트 3개 이상)
+async function waitForProductCards(page, { timeout = 6000 } = {}) {
+  try {
+    await page.waitForFunction(() => {
+      const priceLike = (document.body.innerText.match(/[\d.,]+\s?(€|\$|£|kr|TL|zł|₩)/g) || []).length;
+      return priceLike >= 3;
+    }, { timeout });
+    return true;
+  } catch (e) {
+    console.log(`    ⚠️ waitForProductCards 타임아웃: ${e.message}`);
+    return false;
+  }
+}
+
+// "더 보기" 버튼을 찾아 클릭 (언어 무관, class/attribute 영어 키워드 기반)
+async function findAndClickLoadMore(page) {
+  return await page.evaluate(() => {
+    const keywordPattern = /load-?more|show-?more|view-?more|see-?more|more-?products|btn-?more|loadmore|showmore/i;
+
+    const candidates = Array.from(
+      document.querySelectorAll('button, a[role="button"], a.button, [role="button"]')
+    ).filter(el => {
+      if (!el.offsetParent) return false; // 화면에 안 보이면 제외
+      const attrs = [
+        el.className,
+        el.id,
+        el.getAttribute('data-js-action') || '',
+        el.getAttribute('data-action') || '',
+        el.getAttribute('aria-label') || '',
+      ].join(' ').toLowerCase();
+      return keywordPattern.test(attrs);
+    });
+
+    if (candidates.length === 0) return false;
+
+    const btn = candidates[0];
+    btn.scrollIntoView({ block: 'center' });
+    btn.click();
+    return true;
+  });
+}
+
+// 현재 렌더링된 상품 카드 수 추정 (통화기호 텍스트 개수 기반, 언어 무관)
+async function countProductLike(page) {
+  try {
+    return await page.evaluate(() => {
+      const priceLike = document.body.innerText.match(/[\d.,]+\s?(€|\$|£|kr|TL|zł|₩)/g) || [];
+      return priceLike.length;
+    });
+  } catch (e) {
+    return -1;
+  }
+}
+
+// "더 보기" 버튼을 반복 클릭해서 모든 상품 로드
+async function loadAllProducts(page, { maxClicks = 20, waitAfterClick = 1200 } = {}) {
+  let clicks = 0;
+  let lastCount = await countProductLike(page);
+  console.log(`    초기 상품 카드 수(추정): ${lastCount}`);
+
+  while (clicks < maxClicks) {
+    let clicked = false;
+    try {
+      clicked = await findAndClickLoadMore(page);
+    } catch (e) {
+      console.log(`    ⚠️ 버튼 클릭 중 오류: ${e.message}`);
+      break;
+    }
+
+    if (!clicked) {
+      console.log(`    더 보기 버튼 없음 → 모든 상품 로드 완료`);
+      break;
+    }
+
+    await page.waitForTimeout(waitAfterClick);
+    clicks++;
+
+    const newCount = await countProductLike(page);
+    if (newCount === -1) {
+      console.log(`    ⚠️ 클릭 후 컨텍스트 소실, 종료`);
+      break;
+    }
+    console.log(`    클릭 ${clicks}회 → 상품 카드 수: ${lastCount} → ${newCount}`);
+
+    if (newCount <= lastCount) {
+      console.log(`    카드 수 증가 없음 → 종료 (안전장치)`);
+      break;
+    }
+    lastCount = newCount;
+  }
+
+  return { clicks, finalCount: lastCount };
+}
+
+
+
 async function fullScroll(page) {
   // data-desktop-src / data-src 기반 lazy-load 이미지 강제 로드 (실패해도 무시)
   try {
@@ -159,6 +428,19 @@ async function captureSite(context, country, page_config) {
   const page = await context.newPage();
   const targetPath = page_config.path.replace(/\/$/, '');
 
+  // PF 페이지 디버깅: 네트워크 요청/실패 로그 (API 호출 여부 확인용)
+  if (page_config.id !== 'home') {
+    page.on('response', (res) => {
+      const resUrl = res.url();
+      if (resUrl.includes('monitor') || resUrl.includes('product') || resUrl.includes('/api/') || resUrl.includes('/pd21')) {
+        console.log(`    [NETWORK] ${res.status()} ${resUrl.slice(0, 120)}`);
+      }
+    });
+    page.on('requestfailed', (req) => {
+      console.log(`    [REQ FAILED] ${req.url().slice(0, 120)} - ${req.failure()?.errorText}`);
+    });
+  }
+
   // 네비게이션 차단 활성화 플래그 (초기 로드는 허용, 스크롤 시작 직전부터 차단)
   let blockNavigation = false;
 
@@ -200,7 +482,7 @@ async function captureSite(context, country, page_config) {
       }
       try {
         await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
-        // PF는 초기 대기를 짧게! (12초 대기 중 redirect 타이머가 임박해짐)
+        // PF 페이지 초기 렌더링 안정화 대기
         await page.waitForTimeout(page_config.id !== 'home' ? 4000 : 6000);
 
         const bodyText = await page.evaluate(() => document.body.innerText.slice(0, 300));
@@ -249,77 +531,25 @@ async function captureSite(context, country, page_config) {
         blockNavigation = true;
         await fullScroll(page);
       } else {
-        // PF 페이지: evaluate 내부에서 빠른 스크롤로 카드 DOM 생성 트리거
-        // round-trip 없이 브라우저 JS 엔진 내에서 직접 실행 → redirect 전에 완료
-        console.log(`    PF scroll (fast internal)...`);
+        // PF 페이지: "더 보기" 버튼을 반복 클릭해서 전체 상품 로드 후 캡처
+        console.log(`    Loading all products (Load More)...`);
+        blockNavigation = true; // 안전장치: 리다이렉트 시도 시 차단
+
         try {
-          await page.evaluate(async () => {
-            await new Promise((resolve) => {
-              const STEP = 500;        // 스크롤 step (px)
-              const INTERVAL = 120;    // step 간격 (ms) - 너무 빠르면 Samsung JS가 못 따라옴
-              const TIMEOUT = 18000;   // 최대 허용 시간 (ms)
-              const STABLE_MS = 1500;  // 카드 수 안정화 판단 시간
+          // 초기 렌더링 안정화를 위해 살짝 스크롤 (첫 배치 lazy-load 트리거 대비)
+          await page.mouse.wheel(0, 600);
+          await page.waitForTimeout(500);
+          await page.mouse.wheel(0, 600);
+          await page.waitForTimeout(800);
+        } catch (e) {}
 
-              let pos = 0;
-              let lastCardCount = 0;
-              let stableTimer = null;
-              let done = false;
-
-              const finish = () => {
-                if (done) return;
-                done = true;
-                observer.disconnect();
-                window.scrollTo(0, 0);
-                setTimeout(resolve, 800);
-              };
-
-              // MutationObserver로 카드 DOM 생성 감지
-              const observer = new MutationObserver(() => {
-                const count = document.querySelectorAll(
-                  '[class*="pd21"], [class*="product-card"], [class*="item-product"], [class*="card-product"]'
-                ).length;
-                if (count > lastCardCount) {
-                  lastCardCount = count;
-                  clearTimeout(stableTimer);
-                  stableTimer = setTimeout(finish, STABLE_MS);
-                }
-              });
-              observer.observe(document.body, { childList: true, subtree: true });
-
-              // 전체 타임아웃
-              const globalTimer = setTimeout(finish, TIMEOUT);
-
-              // 스크롤 루프
-              const step = () => {
-                if (done) return;
-                const h = document.body.scrollHeight;
-                const vh = window.innerHeight;
-
-                window.scrollTo(0, pos);
-                // scroll + wheel 이벤트 모두 dispatch (Samsung JS가 어느 것을 듣는지 불확실)
-                window.dispatchEvent(new Event('scroll', { bubbles: true }));
-                window.dispatchEvent(new WheelEvent('wheel', {
-                  deltaY: STEP, bubbles: true, cancelable: true
-                }));
-
-                pos += STEP;
-
-                if (pos >= h + vh) {
-                  clearTimeout(globalTimer);
-                  finish();
-                } else {
-                  setTimeout(step, INTERVAL);
-                }
-              };
-
-              step();
-            });
-          });
+        try {
+          await loadAllProducts(page, { maxClicks: 20, waitAfterClick: 1200 });
         } catch (e) {
-          console.log(`    ⚠️ PF 스크롤 중 페이지 변경 감지 (현재 상태로 캡처): ${e.message}`);
+          console.log(`    ⚠️ 상품 로드 중 예외 (현재 상태로 캡처): ${e.message}`);
         }
 
-        // data-src 강제 적용 (스크롤 완료 후)
+        // data-src 강제 적용
         try {
           await page.evaluate(() => {
             document.querySelectorAll('img[data-desktop-src]').forEach(img => {
@@ -331,7 +561,17 @@ async function captureSite(context, country, page_config) {
           });
         } catch (e) {}
 
-        await page.waitForTimeout(2000);
+        // 맨 위로 복귀
+        try {
+          await page.evaluate(() => {
+            window.scrollTo(0, 0);
+            document.querySelectorAll('*').forEach(el => {
+              const style = getComputedStyle(el);
+              if (style.overflowY === 'auto' || style.overflowY === 'scroll') el.scrollTop = 0;
+            });
+          });
+        } catch (e) {}
+        await page.waitForTimeout(1000);
       }
       await page.screenshot({ path: path.join(dir, `${today}-full.png`), fullPage: true });
       console.log(`    Full screenshot done`);
@@ -388,35 +628,41 @@ async function main() {
         });
       };
 
-      // DOM 로드 즉시 + 변경될 때마다 팝업 숨김
       document.addEventListener('DOMContentLoaded', hidePopups);
       const observer = new MutationObserver(hidePopups);
       document.addEventListener('DOMContentLoaded', () => {
         observer.observe(document.body, { childList: true, subtree: true });
       });
 
-      // IntersectionObserver override: 모든 요소를 즉시 "뷰포트 진입"으로 처리
-      const OriginalIntersectionObserver = window.IntersectionObserver;
-      window.IntersectionObserver = function(callback, options) {
-        const observer = new OriginalIntersectionObserver(callback, options);
-        const originalObserve = observer.observe.bind(observer);
-        observer.observe = (target) => {
-          try {
-            callback([{
-              isIntersecting: true,
-              intersectionRatio: 1,
-              target,
-              boundingClientRect: target.getBoundingClientRect(),
-              intersectionRect: target.getBoundingClientRect(),
-              rootBounds: null,
-              time: performance.now(),
-            }], observer);
-          } catch(e) {}
-          originalObserve(target);
+      // ⚠️ IntersectionObserver override는 Homepage(lazy-load 이미지)에만 필요.
+      // PF 페이지는 scroll 기반으로 카드 DOM을 "생성"하는 구조로 추정되며,
+      // 이 override가 실제 스크롤 위치와 무관하게 관찰자를 즉시 종료시켜
+      // 진짜 스크롤 트리거에 반응하지 못하게 만들 가능성이 있어 PF에서는 비활성화한다.
+      const isPFPage = location.pathname.includes('all-monitors');
+
+      if (!isPFPage) {
+        const OriginalIntersectionObserver = window.IntersectionObserver;
+        window.IntersectionObserver = function(callback, options) {
+          const obs = new OriginalIntersectionObserver(callback, options);
+          const originalObserve = obs.observe.bind(obs);
+          obs.observe = (target) => {
+            try {
+              callback([{
+                isIntersecting: true,
+                intersectionRatio: 1,
+                target,
+                boundingClientRect: target.getBoundingClientRect(),
+                intersectionRect: target.getBoundingClientRect(),
+                rootBounds: null,
+                time: performance.now(),
+              }], obs);
+            } catch (e) {}
+            originalObserve(target);
+          };
+          return obs;
         };
-        return observer;
-      };
-      window.IntersectionObserver.prototype = OriginalIntersectionObserver.prototype;
+        window.IntersectionObserver.prototype = OriginalIntersectionObserver.prototype;
+      }
     });
 
     for (const page_config of config.pages) {
