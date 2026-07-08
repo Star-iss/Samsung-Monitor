@@ -29,43 +29,66 @@ const html = `<!DOCTYPE html>
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Samsung Web Monitor</title>
+<title>Samsung Monitor Archiving DashBoard</title>
 <style>
+  /*
+    다크 테마 색상을 CSS 변수로 관리.
+    나중에 라이트 테마를 추가하려면, 예를 들어 body에 [data-theme="light"] 같은
+    속성을 붙이고 그 안에서 아래 변수들을 라이트 색상으로 재정의하면 됨.
+    포인트 컬러(Samsung 블루)는 --accent(버튼 등 채워진 배경용)와
+    --accent-light(다크 배경 위 텍스트/링크/테두리용, 가독성을 위해 밝게 조정) 두 가지로 분리.
+  */
+  :root {
+    --bg-color: #121212;
+    --bg-secondary: #1a1a1a;
+    --bg-card: #1e1e1e;
+    --bg-placeholder: #262626;
+    --text-color: #e8e8e8;
+    --text-secondary: #b0b0b0;
+    --text-muted: #8a8a8a;
+    --border-color: #333333;
+    --accent: #1428A0;
+    --accent-light: #6c8eff;
+    --shadow-color: rgba(0, 0, 0, 0.4);
+    --overlay-bg: rgba(0, 0, 0, 0.75);
+    --scrollbar-thumb: #444444;
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #222; }
+  body { font-family: 'Segoe UI', sans-serif; background: var(--bg-color); color: var(--text-color); }
 
   header {
-    background: #1428A0; color: white;
+    background: var(--accent); color: white;
     padding: 14px 24px; display: flex; justify-content: space-between; align-items: center;
   }
   header h1 { font-size: 1.1rem; font-weight: 700; }
   header .meta { font-size: 0.78rem; opacity: 0.8; margin-top: 2px; }
 
   .toolbar {
-    background: white; padding: 10px 24px;
+    background: var(--bg-secondary); padding: 10px 24px;
     display: flex; align-items: center; gap: 12px;
-    border-bottom: 1px solid #e0e0e0; font-size: 0.85rem;
+    border-bottom: 1px solid var(--border-color); font-size: 0.85rem;
   }
-  .toolbar label { color: #555; }
+  .toolbar label { color: var(--text-secondary); }
   .toolbar select {
-    border: 1px solid #ccc; border-radius: 6px;
+    border: 1px solid var(--border-color); border-radius: 6px;
     padding: 5px 10px; font-size: 0.85rem; cursor: pointer;
-    background: white;
+    background: var(--bg-card); color: var(--text-color);
   }
-  .toolbar .right { margin-left: auto; color: #888; font-size: 0.78rem; }
+  .toolbar .right { margin-left: auto; color: var(--text-muted); font-size: 0.78rem; }
 
   .country-slicer {
-    background: white; padding: 10px 24px;
+    background: var(--bg-secondary); padding: 10px 24px;
     display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--border-color);
   }
   .country-btn {
-    padding: 5px 14px; border: 1px solid #ddd; border-radius: 20px;
-    background: white; cursor: pointer; font-size: 0.82rem; color: #444;
+    padding: 5px 14px; border: 1px solid var(--border-color); border-radius: 20px;
+    background: var(--bg-card); cursor: pointer; font-size: 0.82rem; color: var(--text-secondary);
     transition: all 0.15s;
   }
-  .country-btn:hover { border-color: #1428A0; color: #1428A0; }
-  .country-btn.active { background: #1428A0; color: white; border-color: #1428A0; }
+  .country-btn:hover { border-color: var(--accent-light); color: var(--accent-light); }
+  .country-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
 
   .grid {
     display: grid;
@@ -74,43 +97,43 @@ const html = `<!DOCTYPE html>
   }
 
   .card {
-    background: white; border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden;
+    background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px;
+    box-shadow: 0 2px 8px var(--shadow-color); overflow: hidden;
   }
   .card.hidden { display: none; }
 
   .card-header {
     padding: 12px 16px; display: flex; align-items: center; gap: 8px;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--border-color);
   }
   .card-flag { font-size: 1.2rem; }
-  .card-country { font-weight: 700; font-size: 0.88rem; color: #1428A0; }
-  .card-title { font-size: 0.82rem; color: #666; flex: 1; }
+  .card-country { font-weight: 700; font-size: 0.88rem; color: var(--accent-light); }
+  .card-title { font-size: 0.82rem; color: var(--text-secondary); flex: 1; }
   .card-link {
-    font-size: 0.75rem; color: #1428A0; text-decoration: none;
-    padding: 3px 8px; border: 1px solid #1428A0; border-radius: 12px;
+    font-size: 0.75rem; color: var(--accent-light); text-decoration: none;
+    padding: 3px 8px; border: 1px solid var(--accent-light); border-radius: 12px;
   }
-  .card-link:hover { background: #1428A0; color: white; }
+  .card-link:hover { background: var(--accent); color: white; border-color: var(--accent); }
 
   .tab-bar {
-    display: flex; gap: 0; border-bottom: 1px solid #eee;
-    padding: 0 12px; background: #fafafa;
+    display: flex; gap: 0; border-bottom: 1px solid var(--border-color);
+    padding: 0 12px; background: var(--bg-secondary);
   }
   .tab {
     padding: 8px 14px; border: none; background: none;
-    cursor: pointer; font-size: 0.8rem; color: #888;
+    cursor: pointer; font-size: 0.8rem; color: var(--text-muted);
     border-bottom: 2px solid transparent; margin-bottom: -1px;
     transition: all 0.15s;
   }
-  .tab:hover { color: #1428A0; }
-  .tab.active { color: #1428A0; border-bottom-color: #1428A0; font-weight: 600; }
+  .tab:hover { color: var(--accent-light); }
+  .tab.active { color: var(--accent-light); border-bottom-color: var(--accent-light); font-weight: 600; }
 
   .tab-content { display: none; }
   .tab-content.active { display: block; }
 
   .img-wrap {
     cursor: pointer; position: relative; overflow: hidden;
-    background: #f5f5f5;
+    background: var(--bg-placeholder);
   }
   .img-wrap:hover { opacity: 0.92; }
   .img-label {
@@ -126,55 +149,55 @@ const html = `<!DOCTYPE html>
     opacity: 0.4;
   }
   .no-img {
-    text-align: center; padding: 40px; color: #aaa; font-size: 0.85rem;
+    text-align: center; padding: 40px; color: var(--text-muted); font-size: 0.85rem;
   }
 
   .card-footer {
     padding: 10px 14px; display: flex; gap: 8px; flex-wrap: wrap;
-    border-top: 1px solid #f0f0f0; background: #fafafa;
+    border-top: 1px solid var(--border-color); background: var(--bg-secondary);
   }
   .badge {
-    font-size: 0.75rem; color: #555; text-decoration: none;
-    padding: 3px 10px; border: 1px solid #ddd; border-radius: 12px;
-    background: white;
+    font-size: 0.75rem; color: var(--text-secondary); text-decoration: none;
+    padding: 3px 10px; border: 1px solid var(--border-color); border-radius: 12px;
+    background: var(--bg-card);
   }
-  .badge:hover { border-color: #1428A0; color: #1428A0; }
+  .badge:hover { border-color: var(--accent-light); color: var(--accent-light); }
 
   /* Modal */
   .modal-overlay {
     display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,0.7); z-index: 1000;
+    background: var(--overlay-bg); z-index: 1000;
     justify-content: center; align-items: center;
   }
   .modal-overlay.open { display: flex; }
   .modal {
-    background: white; border-radius: 12px;
+    background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px;
     width: 90vw; max-width: 1100px; max-height: 90vh;
     overflow-y: auto; padding: 24px; position: relative;
   }
   .modal-close {
     position: absolute; top: 14px; right: 18px;
     background: none; border: none; font-size: 1.4rem;
-    cursor: pointer; color: #555;
+    cursor: pointer; color: var(--text-secondary);
   }
-  .modal h2 { font-size: 1rem; color: #1428A0; margin-bottom: 14px; }
+  .modal h2 { font-size: 1rem; color: var(--accent-light); margin-bottom: 14px; }
   .modal-tabs { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
   .modal-tab-btn {
-    padding: 5px 14px; border: 1px solid #ddd; border-radius: 20px;
-    background: none; cursor: pointer; font-size: 0.8rem; color: #555;
+    padding: 5px 14px; border: 1px solid var(--border-color); border-radius: 20px;
+    background: none; cursor: pointer; font-size: 0.8rem; color: var(--text-secondary);
   }
-  .modal-tab-btn.active { background: #1428A0; color: white; border-color: #1428A0; }
-  .modal img { width: 100%; border: 1px solid #eee; border-radius: 8px; }
+  .modal-tab-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .modal img { width: 100%; border: 1px solid var(--border-color); border-radius: 8px; }
   .modal-loading {
-    text-align: center; padding: 60px; color: #888; font-size: 0.95rem;
+    text-align: center; padding: 60px; color: var(--text-muted); font-size: 0.95rem;
   }
   .open-btn {
-    display: inline-block; margin-top: 10px; background: #1428A0; color: white;
+    display: inline-block; margin-top: 10px; background: var(--accent); color: white;
     padding: 7px 16px; border-radius: 8px; font-size: 0.82rem; text-decoration: none;
   }
 
   ::-webkit-scrollbar { height: 4px; width: 4px; }
-  ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
 
   @media (max-width: 600px) {
     .grid { grid-template-columns: 1fr; padding: 16px; }
@@ -186,8 +209,7 @@ const html = `<!DOCTYPE html>
 
 <header>
   <div>
-    <h1>🖥️ Samsung Web Monitor</h1>
-    <div class="meta">팀 내부용 웹 변경 모니터링 대시보드</div>
+    <h1>🖥️ Samsung Monitor Archiving DashBoard</h1>
   </div>
   <div class="meta">마지막 업데이트: ${latest || '-'}</div>
 </header>
