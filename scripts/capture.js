@@ -449,14 +449,13 @@ async function captureSite(context, country, page_config) {
     const reqUrl = req.url();
     const resourceType = req.resourceType();
 
-    // 스크롤 시작 후에만 잘못된 URL로의 이동 차단
+    // 스크롤/상품로드 단계 진입 후에는 어떤 네비게이션도 필요 없음 → 전부 차단
+    // (예전엔 targetPath를 포함하는 URL은 통과시켰는데, "/monitors/all-monitors/undefined" 같은
+    //  Samsung 측 페이지네이션 버그로 생긴 깨진 URL도 이 substring 검사를 통과해버려서
+    //  로드해둔 상품이 다 날아가는 페이지 리셋이 발생했음. 그래서 예외 없이 전부 막음.)
     if (blockNavigation && req.isNavigationRequest() && req.frame() === page.mainFrame()) {
-      if (reqUrl.includes(targetPath) || targetPath === '') {
-        await route.continue();
-      } else {
-        console.log(`    🚫 리다이렉트 차단: ${reqUrl}`);
-        await route.abort();
-      }
+      console.log(`    🚫 네비게이션 차단: ${reqUrl}`);
+      await route.abort();
       return;
     }
 
