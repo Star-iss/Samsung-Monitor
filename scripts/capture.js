@@ -543,6 +543,15 @@ async function captureSite(context, country, page_config) {
           await page.waitForTimeout(800);
         } catch (e) {}
 
+        // 첫 배치 상품 카드가 실제로 렌더링될 때까지 대기.
+        // 이 대기 없이 바로 "더보기" 버튼을 찾으면, 버튼이 "아직 안 떴다"(=로딩 중)와
+        // "이제 더 없다"(=로딩 완료)를 구분 못 해서 응답이 느린 날엔 빈 페이지로 캡처됨.
+        console.log(`    Waiting for first product batch to render...`);
+        const initialCardsReady = await waitForProductCards(page, { timeout: 15000 });
+        if (!initialCardsReady) {
+          console.log(`    ⚠️ 15초 대기 후에도 상품 카드가 감지되지 않음 (그래도 현재 상태로 진행)`);
+        }
+
         try {
           await loadAllProducts(page, { maxClicks: 20, waitAfterClick: 1200 });
         } catch (e) {
