@@ -34,6 +34,26 @@ async function acceptCookies(page) {
       }
     } catch {}
   }
+
+  // 위 셀렉터로 못 찾은 경우: class/id에 "accept"가 없는 커스텀 쿠키 배너 대응
+  // (예: "Samsung and Cookies" 위젯처럼 버튼 텍스트만 "Accept"인 경우) 텍스트 기반으로 재시도
+  try {
+    const clicked = await page.evaluate(() => {
+      const buttons = Array.from(document.querySelectorAll('button, a[role="button"]'));
+      const btn = buttons.find(b => b.offsetParent && b.textContent.trim().toLowerCase() === 'accept');
+      if (btn) {
+        btn.click();
+        return true;
+      }
+      return false;
+    });
+    if (clicked) {
+      await page.waitForTimeout(2000);
+      console.log(`    쿠키 동의 배너 "Accept" 텍스트 매칭으로 닫힘`);
+      return true;
+    }
+  } catch {}
+
   return false;
 }
 
@@ -381,8 +401,14 @@ async function fullScroll(page) {
     console.log(`    ⚠️ lazy-load 강제 로드 실패 (무시): ${e.message}`);
   }
 
-  // body 포커스 확보 (클릭 대신 - 배너/CTA를 잘못 누르는 것 방지)
-  await page.evaluate(() => document.body.focus());
+  // 포커스 제거 (body.focus()는 body가 원래 focusable이 아니라서 실패할 수 있고,
+  // 그러면 히어로 배너 CTA 같은 요소가 포커스를 유지한 채로 남아있어서
+  // 이어지는 Space 키 입력이 스크롤 대신 그 요소를 "클릭"해버림)
+  await page.evaluate(() => {
+    if (document.activeElement && document.activeElement !== document.body && document.activeElement.blur) {
+      document.activeElement.blur();
+    }
+  });
   await page.waitForTimeout(500);
 
   try {
