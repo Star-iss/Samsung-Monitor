@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const config = JSON.parse(fs.readFileSync('urls.json', 'utf8'));
-const today = new Date().toISOString().split('T')[0];
+const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
 
 const targetCountry = process.argv[2] || null;
 const countries = targetCountry
