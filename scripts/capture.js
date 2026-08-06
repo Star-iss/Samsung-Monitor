@@ -381,8 +381,8 @@ async function fullScroll(page) {
     console.log(`    ⚠️ lazy-load 강제 로드 실패 (무시): ${e.message}`);
   }
 
-  // body 클릭으로 포커스 확보
-  await page.mouse.click(760, 400);
+  // body 포커스 확보 (클릭 대신 - 배너/CTA를 잘못 누르는 것 방지)
+  await page.evaluate(() => document.body.focus());
   await page.waitForTimeout(500);
 
   try {
@@ -581,6 +581,23 @@ async function captureSite(context, country, page_config) {
         } catch (e) {}
         await page.waitForTimeout(1000);
       }
+
+      // 캡처 직전 안전장치: 의도치 않은 페이지 이동 감지 시 원래 URL로 복귀
+      // (예: 스크롤/포커스 과정에서 히어로 배너 등을 실수로 눌러 다른 페이지로 튄 경우)
+      try {
+        const expectedPath = new URL(url).pathname.replace(/\/$/, '');
+        const currentPath = new URL(page.url()).pathname.replace(/\/$/, '');
+        if (currentPath !== expectedPath) {
+          console.log(`    ⚠️ 예상치 못한 페이지 이동 감지: ${page.url()} → 원래 URL로 복귀`);
+          await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+          await page.waitForTimeout(2000);
+          await page.evaluate(() => window.scrollTo(0, 0));
+          await page.waitForTimeout(500);
+        }
+      } catch (e) {
+        console.log(`    ⚠️ URL 검증 중 오류 (무시하고 진행): ${e.message}`);
+      }
+
       await page.screenshot({ path: path.join(dir, `${today}-full.png`), fullPage: true });
       console.log(`    Full screenshot done`);
     }
