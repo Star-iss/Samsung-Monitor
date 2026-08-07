@@ -9,6 +9,10 @@ const indexPath = path.join(metaDir, 'index.json');
 const dates = fs.existsSync(indexPath) ? JSON.parse(fs.readFileSync(indexPath, 'utf8')) : [];
 const latest = dates[0] || null;
 
+// 동료의 "Screenshot Machine"(즉석 캡처 도구) 접속 주소.
+// Render에 실제 배포됨 (Docker + Playwright, samsung.com 도메인만 캡처 허용).
+const MACHINE_URL = 'https://screenshot-center.onrender.com/';
+
 // 국가 코드 → 국기 이모지
 const flagMap = {
   de: '🇩🇪', au: '🇦🇺', be: '🇧🇪', be_fr: '🇧🇪', fr: '🇫🇷',
@@ -63,6 +67,14 @@ const html = `<!DOCTYPE html>
   }
   header h1 { font-size: 1.1rem; font-weight: 700; }
   header .meta { font-size: 0.78rem; opacity: 0.8; margin-top: 2px; }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .machine-btn {
+    color: white; text-decoration: none; font-size: 0.78rem; font-weight: 700;
+    padding: 6px 14px; border-radius: 999px; white-space: nowrap;
+    background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.34);
+    transition: all 0.15s;
+  }
+  .machine-btn:hover { background: white; color: var(--accent); }
 
   .toolbar {
     background: var(--bg-secondary); padding: 10px 24px;
@@ -208,8 +220,9 @@ const html = `<!DOCTYPE html>
 <body>
 
 <header>
-  <div>
+  <div class="header-left">
     <h1>🖥️ Samsung Monitor Archiving DashBoard</h1>
+    <a class="machine-btn" href="${MACHINE_URL}" target="_blank" rel="noopener">📸 즉석 캡처 (Machine)</a>
   </div>
   <div class="meta">마지막 업데이트: ${latest || '-'}</div>
 </header>
