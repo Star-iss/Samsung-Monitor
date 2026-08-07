@@ -37,6 +37,14 @@
   }
   header h1 { font-size: 1.1rem; font-weight: 700; }
   header .meta { font-size: 0.78rem; opacity: 0.8; margin-top: 2px; }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .machine-btn {
+    color: white; text-decoration: none; font-size: 0.78rem; font-weight: 700;
+    padding: 6px 14px; border-radius: 999px; white-space: nowrap;
+    background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.34);
+    transition: all 0.15s;
+  }
+  .machine-btn:hover { background: white; color: var(--accent); }
 
   .toolbar {
     background: var(--bg-secondary); padding: 10px 24px;
@@ -182,8 +190,9 @@
 <body>
 
 <header>
-  <div>
+  <div class="header-left">
     <h1>🖥️ Samsung Monitor Archiving DashBoard</h1>
+    <a class="machine-btn" href="https://screenshot-center.onrender.com/" target="_blank" rel="noopener">📸 즉석 캡처 (Machine)</a>
   </div>
   <div class="meta">마지막 업데이트: 2026-08-07</div>
 </header>
