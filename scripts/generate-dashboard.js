@@ -68,6 +68,7 @@ const html = `<!DOCTYPE html>
   header h1 { font-size: 1.1rem; font-weight: 700; }
   header .meta { font-size: 0.78rem; opacity: 0.8; margin-top: 2px; }
   .header-left { display: flex; align-items: center; gap: 14px; }
+  .header-right { display: flex; align-items: center; gap: 16px; }
   .machine-btn {
     color: white; text-decoration: none; font-size: 0.78rem; font-weight: 700;
     padding: 6px 14px; border-radius: 999px; white-space: nowrap;
@@ -222,9 +223,11 @@ const html = `<!DOCTYPE html>
 <header>
   <div class="header-left">
     <h1>🖥️ Samsung Monitor Archiving DashBoard</h1>
-    <a class="machine-btn" href="${MACHINE_URL}" target="_blank" rel="noopener">📸 즉석 캡처 (Machine)</a>
   </div>
-  <div class="meta">마지막 업데이트: ${latest || '-'}</div>
+  <div class="header-right">
+    <a class="machine-btn" href="${MACHINE_URL}" target="_blank" rel="noopener">📸 Screenshot Machine</a>
+    <div class="meta">마지막 업데이트: ${latest || '-'}</div>
+  </div>
 </header>
 
 <div class="toolbar">
