@@ -29,7 +29,7 @@
       "path": "/monitors/all-monitors/",
       "id": "monitors",
       "gnbHover": false,
-      "captureFullPage": true
+      "captureFullPage": false
     }
   ],
   "schedule": "0 9 * * *"
