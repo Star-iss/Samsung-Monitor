@@ -79,7 +79,7 @@ jobs:
 
       - name: Merge meta files and update index
         run: |
-          TODAY=$(date +%Y-%m-%d)
+          TODAY=$(TZ=Asia/Seoul date +%Y-%m-%d)
           node -e "
             const fs = require('fs');
             const path = require('path');
@@ -125,7 +125,7 @@ jobs:
           git config user.name "Screenshot Bot"
           git config user.email "bot@github.com"
           git add docs/
-          git diff --staged --quiet || git commit -m "Daily capture: $(date +%Y-%m-%d)"
+          git diff --staged --quiet || git commit -m "Daily capture: $(TZ=Asia/Seoul date +%Y-%m-%d)"
           git push
 
       - name: Deploy to Cloudflare Pages
