@@ -58,6 +58,7 @@ async function acceptCookies(page) {
 }
 
 async function captureGNBHover(page, dir, countryCode) {
+  let el = null;
   try {
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(1000);
@@ -69,8 +70,6 @@ async function captureGNBHover(page, dir, countryCode) {
         mask.style.pointerEvents = 'none';
       }
     });
-
-    let el = null;
 
     if (countryCode === 'sec') {
       const target = await page.evaluateHandle(() => {
@@ -109,6 +108,7 @@ async function captureGNBHover(page, dir, countryCode) {
   } catch (err) {
     console.log(`    GNB hover failed: ${err.message}`);
   }
+  return el; // 호출부에서 닫을 때 동일한 요소에 반대 이벤트를 쏘기 위해 반환
 }
 
 // ── PF 디버깅 헬퍼 함수들 ──────────────────────────────────────────
@@ -497,12 +497,14 @@ async function captureSite(context, country, page_config) {
   try {
     console.log(`  [${country.code}] ${page_config.name}`);
 
-    // 봇 차단(Akamai 등) 감지 시 재시도
+    // 봇 차단(Akamai 등) 또는 마케팅 캠페인발 의도치 않은 리다이렉트 감지 시 재시도
+    // (예: 홈페이지 접속 시 확률적으로 상품 런칭 캠페인 페이지로 튕기는 경우.
+    //  이걸 여기서 안 잡으면 top.png를 찍기도 전에 이미 엉뚱한 페이지가 떠 있게 됨)
     let blocked = true;
     let lastErr = null;
     for (let retry = 0; retry < 3 && blocked; retry++) {
       if (retry > 0) {
-        console.log(`    ⚠️ 차단 감지, 재시도 ${retry}/2...`);
+        console.log(`    ⚠️ 차단/리다이렉트 감지, 재시도 ${retry}/2...`);
         await page.waitForTimeout(5000 * retry);
       }
       try {
@@ -511,16 +513,25 @@ async function captureSite(context, country, page_config) {
         await page.waitForTimeout(page_config.id !== 'home' ? 4000 : 6000);
 
         const bodyText = await page.evaluate(() => document.body.innerText.slice(0, 300));
-        const isBlocked =
+        const isBotBlocked =
           bodyText.includes("don't have permission") ||
           bodyText.includes('edgesuite.net') ||
           bodyText.includes('Reference #') ||
           bodyText.includes('Access Denied');
 
-        if (!isBlocked) {
+        const expectedPath = new URL(url).pathname.replace(/\/$/, '');
+        const currentPath = new URL(page.url()).pathname.replace(/\/$/, '');
+        const isWrongPage = currentPath !== expectedPath;
+        if (isWrongPage) {
+          console.log(`    ⚠️ 의도치 않은 페이지로 착지: ${page.url()} (기대: ${url})`);
+        }
+
+        if (!isBotBlocked && !isWrongPage) {
           blocked = false;
         } else {
-          lastErr = new Error('Akamai/봇 차단 페이지 감지됨');
+          lastErr = isBotBlocked
+            ? new Error('Akamai/봇 차단 페이지 감지됨')
+            : new Error(`엉뚱한 페이지로 리다이렉트됨: ${page.url()}`);
         }
       } catch (err) {
         lastErr = err;
@@ -539,11 +550,42 @@ async function captureSite(context, country, page_config) {
 
     // GNB Hover (홈페이지만)
     if (page_config.gnbHover) {
-      await captureGNBHover(page, dir, country.code);
+      const gnbEl = await captureGNBHover(page, dir, country.code);
+
+      // GNB 메가메뉴 확실히 닫기.
+      // 마우스를 다른 좌표로 옮기는 것만으로는 사이트 쪽 메가메뉴 닫힘 로직이
+      // 가끔 반응 안 해서(약 10%), dim 마스크가 열린 채로 전체 페이지 캡처에 남는 경우가 있었음.
+      // 그래서 열 때 쐈던 이벤트의 정반대를 같은 요소에 직접 발생시키고,
+      // Escape 키, 마스크 강제 재숨김까지 겹쳐서 방어.
+      if (gnbEl) {
+        try {
+          await gnbEl.evaluate(node => {
+            node.dispatchEvent(new MouseEvent('mouseout', { bubbles: true }));
+            node.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
+          });
+        } catch (e) {}
+      }
       await page.mouse.move(68, 177);
       await page.waitForTimeout(500);
       await page.mouse.move(0, 500);
-      await page.waitForTimeout(2000);
+      await page.waitForTimeout(500);
+      try {
+        await page.keyboard.press('Escape');
+      } catch (e) {}
+      await page.waitForTimeout(1500);
+
+      // 열 때와 동일하게, 닫은 후에도 dim 마스크를 한 번 더 강제로 숨김
+      // (사이트가 메뉴 열림과 동시에 마스크를 다시 켜버리는 경우 대비)
+      try {
+        await page.evaluate(() => {
+          const mask = document.getElementById('appWebMask');
+          if (mask) {
+            mask.style.display = 'none';
+            mask.style.pointerEvents = 'none';
+          }
+        });
+      } catch (e) {}
+
       await page.evaluate(() => window.scrollTo(0, 0));
       await page.waitForTimeout(500);
     }
